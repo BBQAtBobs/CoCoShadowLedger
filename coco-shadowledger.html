@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CoCo ShadowLedger v5.3.1</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { background-color: #f8fafc; overscroll-behavior-y: none; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { createRoot } = ReactDOM;
+        
+        // --- ICONS ---
+        const Icons = {
+            Plus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            Trash2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            Settings: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+            ChevronDown: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>,
+            ChevronUp: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 15-6-6-6 6"/></svg>,
+            FileText: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>,
+            X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Search: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            ArrowRight: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>,
+            AlertTriangle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
+            CheckCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+            Clipboard: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>,
+            LayoutList: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/></svg>,
+            CalendarRange: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>,
+            Grid: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="3" y2="21"/><line x1="15" x2="15" y1="3" y2="21"/></svg>,
+            ExternalLink: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>,
+            ShieldAlert: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
+            Copy: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
+            Book: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+            Info: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>,
+            Lightbulb: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+        };
+
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        const formatMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+        const toISODateString = (y, m, d) => `${y}-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+
+        // --- PARSERS (Unchanged) ---
+        const parseTimecardHelper = (rawText) => {
+            const newShifts = [];
+            const currentYear = new Date().getFullYear();
+            const kronosRegex = /(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)[,.:]?\s+([A-Z][a-z]+)\s+(\d{1,2})/gi;
+            const genericRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?[\s,]+(\d{1,2})|(\d{1,2})\/(\d{1,2})/gi;
+            
+            let match, headers = [], foundKronos = false;
+            while ((match = kronosRegex.exec(rawText)) !== null) {
+                foundKronos = true;
+                headers.push({ index: match.index, month: match[2], day: parseInt(match[3]), weekday: match[1] });
+            }
+            if (!foundKronos) {
+                while ((match = genericRegex.exec(rawText)) !== null) {
+                    let mStr, d;
+                    if (match[1]) { mStr = match[0].substr(0,3); d = parseInt(match[1]); }
+                    else { const date = new Date(currentYear, parseInt(match[2])-1, parseInt(match[3])); mStr = date.toLocaleString('default', { month: 'short' }); d = parseInt(match[3]); }
+                    headers.push({ index: match.index, month: mStr, day: d });
+                }
+            }
+            if (headers.length === 0) return { success: false };
+
+            headers.sort((a,b) => a.index - b.index);
+            let minDateStr = null;
+
+            headers.forEach((header, i) => {
+                const start = header.index;
+                const end = (i + 1 < headers.length) ? headers[i+1].index : rawText.length;
+                const chunk = rawText.substring(start, end);
+                let resolvedYear = currentYear;
+
+                if (header.weekday) {
+                    const testDate = new Date(`${header.month} ${header.day} ${currentYear}`);
+                    const testDay = testDate.toLocaleDateString('en-US', {weekday:'long'});
+                    if(testDay !== header.weekday) {
+                        const prevDate = new Date(`${header.month} ${header.day} ${currentYear - 1}`);
+                        if(prevDate.toLocaleDateString('en-US', {weekday:'long'}) === header.weekday) resolvedYear = currentYear - 1;
+                        else resolvedYear = currentYear + 1;
+                    }
+                }
+                const monthIdx = new Date(`${header.month} 1 ${resolvedYear}`).getMonth();
+                const isoDate = toISODateString(resolvedYear, monthIdx, header.day);
+                if (!minDateStr || isoDate < minDateStr) minDateStr = isoDate;
+
+                const timeRegex = /((?:1[0-2]|0?[1-9])(?::\d{2})?\s*[ap]m)|((?:[01]?\d|2[0-3]):\d{2})/gi;
+                const times = [];
+                let tMatch;
+                while ((tMatch = timeRegex.exec(chunk)) !== null) times.push(tMatch[0]);
+
+                const normTime = (t) => {
+                    let c = t.toLowerCase().replace(/\s/g, '').replace(/([ap]m)/, ' $1');
+                    if(c.indexOf(':') === -1 && (c.includes('am') || c.includes('pm'))) c = c.replace(/(\d+)\s*([ap]m)/, '$1:00 $2');
+                    const d = new Date(`1/1/2000 ${c}`);
+                    return isNaN(d) ? null : d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+                };
+
+                if (times.length >= 2) {
+                    for(let j=0; j<times.length; j+=2) {
+                        if(j+1 < times.length) {
+                            const sT = normTime(times[j]), eT = normTime(times[j+1]);
+                            if(sT && eT) {
+                                const hasHoldoverText = /holdover/i.test(chunk);
+                                newShifts.push({
+                                    id: generateId(), date: isoDate, startTime: sT, endTime: eT,
+                                    isHoliday: false, claimFreeHour: /no break/i.test(chunk),
+                                    isHoldover: hasHoldoverText, isMando: false, isPaidLeave: false, paidLeaveHours: 12
+                                });
+                            }
+                        }
+                    }
+                } else if (/sick|vacation|pto|absence|holiday/i.test(chunk)) {
+                    newShifts.push({
+                        id: generateId(), date: isoDate, startTime: '17:00', endTime: '05:00',
+                        isHoliday: false, claimFreeHour: false, isHoldover: false, isMando: false, isPaidLeave: true, paidLeaveHours: 12
+                    });
+                }
+            });
+            return { success: true, shifts: newShifts, minDate: minDateStr };
+        };
+
+        const parsePayrollReportHelper = (rawText, currentReport) => {
+            const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
+            const newReportData = { ...currentReport };
+            let currentDate = null, importCount = 0;
+            const foundDates = [];
+            const dateLineRegex = /^(\d{2}\/\d{2}\/\d{4})$/; 
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (dateLineRegex.test(line) && !line.includes('-')) {
+                    const [m, d, y] = line.split('/');
+                    currentDate = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+                    if (!newReportData[currentDate]) newReportData[currentDate] = { entries: [], totalPay: 0, totalHours: 0 };
+                    foundDates.push(currentDate);
+                    continue;
+                }
+                if ((line === 'FLSA Hours' || line === 'Non-FLSA Hours') && currentDate) {
+                    const code = lines[i-1]; 
+                    const numRegex = /^(\d{1,5}(\.\d{1,4})?)$/;
+                    const buffer = [];
+                    for (let j = 1; j <= 6; j++) {
+                        if (i+j < lines.length && numRegex.test(lines[i+j].replace(',',''))) buffer.push(parseFloat(lines[i+j].replace(',','')));
+                    }
+                    if (buffer.length >= 3) {
+                        const [hours, rate, amount] = buffer;
+                        newReportData[currentDate].entries.push({ code, hours, rate, amount });
+                        newReportData[currentDate].totalPay += amount;
+                        if(!code.toLowerCase().includes('no break') && !code.toLowerCase().includes('imputed')) newReportData[currentDate].totalHours += hours;
+                        importCount++;
+                    }
+                }
+            }
+            return { success: importCount > 0, data: newReportData, count: importCount, dates: foundDates };
+        };
+
+        // --- DAILY CARD COMPONENT ---
+        const DailyCard = ({ dayGroup, settings, onUpdate, onRemove, onAddShift, reportData, dailyCalc, isExpanded, onToggleExpand, setActiveTab }) => {
+            const totalPay = dayGroup.rows.reduce((sum, r) => sum + r.total, 0);
+
+            // Validation & Hint Logic
+            let matchStatus = 'none', diff = 0, diffHours = 0;
+            let hint = null;
+
+            if (reportData) {
+                diff = reportData.totalPay - totalPay;
+                diffHours = reportData.totalHours - dailyCalc.hours;
+                matchStatus = Math.abs(diff) < 0.5 ? 'match' : 'mismatch';
+
+                // Determine Hint if Mismatch
+                if (matchStatus === 'mismatch') {
+                    if (Math.abs(diffHours) > 0.1) {
+                        if (diffHours > 0) hint = "Report has MORE hours. Missed punch or extra shift segment?";
+                        else hint = "Report has FEWER hours. Unpaid meal or late arrival?";
+                    } else if (Math.abs(diff) > 0.5) {
+                        if (diff > 0) hint = "Pay is HIGHER. Missing premium (Night Diff/Mando)? Base rate change?";
+                        else hint = "Pay is LOWER. Check Overtime/Holdover calculations.";
+                    }
+                }
+            }
+
+            // Auto-Expand if Mismatch (Default behavior if not manually toggled)
+            const showExpanded = isExpanded !== undefined ? isExpanded : (matchStatus === 'mismatch');
+
+            let borderClass = 'border-slate-200', shadowClass = 'shadow-sm';
+            if (matchStatus === 'match') { borderClass = 'border-emerald-500 border-2 shadow-emerald-50/50'; } 
+            else if (matchStatus === 'mismatch') { borderClass = 'border-amber-500 border-2 bg-amber-50/10'; shadowClass = 'shadow-lg shadow-amber-100'; }
+            else { borderClass = 'border-blue-300 border-dashed border-2'; }
+
+            return (
+                <div className={`bg-white rounded-lg p-4 relative flex flex-col transition-all ${borderClass} ${shadowClass}`}>
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            {new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'long', month:'short', day:'numeric'})}
+                        </span>
+                        <button onClick={() => onAddShift(dayGroup.date)} className="p-1 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50" title="Add Shift Segment">
+                            <Icons.Plus className="w-4 h-4"/>
+                        </button>
+                    </div>
+
+                    {/* Shifts List */}
+                    <div className="space-y-4 mb-4">
+                        {dayGroup.shifts.map((shift, idx) => {
+                             const startD = new Date(`2000-01-01T${shift.startTime}`);
+                             let endD = new Date(`2000-01-01T${shift.endTime}`);
+                             if(endD <= startD) endD.setDate(endD.getDate() + 1);
+                             const crossesMidnight = endD.getDate() > startD.getDate();
+                             const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
+
+                             const segmentRows = dayGroup.rows.filter(r => r.shiftId === shift.id);
+
+                             return (
+                                <div key={shift.id} className="relative pl-3 border-l-2 border-indigo-100">
+                                    <div className="absolute right-0 top-0">
+                                        <button onClick={() => onRemove(shift.id)} className="text-slate-300 hover:text-red-500 p-1"><Icons.X className="w-3 h-3" /></button>
+                                    </div>
+                                    
+                                    <div className="mb-2">
+                                        {shift.isPaidLeave ? (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="font-bold text-teal-600 w-16">PTO/Sick</span>
+                                                <input type="number" value={shift.paidLeaveHours} onChange={(e) => onUpdate(shift.id, 'paidLeaveHours', parseFloat(e.target.value) || 0)} className="w-16 bg-white border rounded px-1 py-0.5 font-mono"/>
+                                                <span className="text-slate-400 text-xs">Hrs</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1 text-sm">
+                                                <input type="time" value={shift.startTime} onChange={(e) => onUpdate(shift.id, 'startTime', e.target.value)} className="w-20 bg-transparent focus:bg-white rounded px-1"/>
+                                                <Icons.ArrowRight className="w-3 h-3 text-slate-300" />
+                                                <div className="relative">
+                                                    <input type="time" value={shift.endTime} onChange={(e) => onUpdate(shift.id, 'endTime', e.target.value)} className="w-20 bg-transparent focus:bg-white rounded px-1"/>
+                                                    {crossesMidnight && <span className="absolute -top-1.5 -right-2 bg-indigo-600 text-white text-[8px] px-1 rounded-full">+1</span>}
+                                                </div>
+                                                <span className="ml-auto font-mono text-xs text-slate-400">{estHours.toFixed(2)}h</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-1 mb-2">
+                                        <button onClick={() => onUpdate(shift.id, 'isPaidLeave', !shift.isPaidLeave)} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${shift.isPaidLeave ? 'bg-teal-100 text-teal-700 border-teal-200' : 'bg-white text-slate-400'}`}>PTO</button>
+                                        {!shift.isPaidLeave && (
+                                            <>
+                                                <button onClick={() => onUpdate(shift.id, 'isHoliday', !shift.isHoliday)} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${shift.isHoliday ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white text-slate-400'}`}>HOL</button>
+                                                <button onClick={() => onUpdate(shift.id, 'claimFreeHour', !shift.claimFreeHour)} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${shift.claimFreeHour ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-white text-slate-400'}`}>MEAL</button>
+                                                <button onClick={() => onUpdate(shift.id, 'isHoldover', !shift.isHoldover)} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${shift.isHoldover ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-white text-slate-400'}`}>HOLD</button>
+                                                <button onClick={() => onUpdate(shift.id, 'isMando', !shift.isMando)} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${shift.isMando ? 'bg-red-100 text-red-700 border-red-200' : 'bg-white text-slate-400'}`}>MANDO</button>
+                                            </>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Breakdown per shift */}
+                                    <div className="space-y-0.5">
+                                        {segmentRows.map(row => (
+                                            <div key={row.id} className="flex justify-between text-[10px] text-slate-400">
+                                                <span>{row.tags.join(', ').replace('Sick/PTO', 'PTO')}</span>
+                                                <span>{formatMoney(row.total)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {shift.isMando && <div className="text-[9px] text-red-500 font-bold mt-1 text-right">Pay Hrs: {(estHours * 2).toFixed(2)}</div>}
+                                </div>
+                             );
+                        })}
+                    </div>
+
+                    {/* Footer Breakdown */}
+                    <div className="text-xs border-t border-slate-100 pt-2 mb-2">
+                        <div className="flex justify-between font-bold text-slate-800">
+                            <span>Projected Daily Total</span>
+                            <span>{formatMoney(totalPay)}</span>
+                        </div>
+                    </div>
+
+                    {matchStatus !== 'none' ? (
+                        <div className={`mt-1 pt-2 border-t border-dashed ${matchStatus === 'match' ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/50'} -mx-4 -mb-4 px-4 pb-2 rounded-b-lg`}>
+                            <button onClick={onToggleExpand} className="w-full flex items-center justify-between mb-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    {matchStatus === 'match' ? <Icons.CheckCircle className="w-3 h-3 text-emerald-500"/> : <Icons.AlertTriangle className="w-3 h-3 text-amber-500"/>}
+                                    <span className={matchStatus === 'match' ? 'text-emerald-700' : 'text-amber-700'}>Official Paid Total</span>
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`font-mono text-xs font-bold ${matchStatus === 'match' ? 'text-emerald-700' : 'text-amber-700'}`}>{formatMoney(reportData.totalPay)}</span>
+                                    {showExpanded ? <Icons.ChevronUp className="w-3 h-3 text-slate-400"/> : <Icons.ChevronDown className="w-3 h-3 text-slate-400"/>}
+                                </div>
+                            </button>
+                            {showExpanded && (
+                                <div className="mt-2 pt-2 border-t border-dashed border-slate-300/50">
+                                    {matchStatus === 'mismatch' && (
+                                        <div className="mb-2">
+                                            <div className="flex justify-between text-[10px] text-amber-600 font-medium bg-white/50 p-1 rounded mb-1">
+                                                <span>Diff: {diff > 0 ? '+' : ''}{formatMoney(diff)}</span>
+                                                <span>Hrs: {diffHours > 0 ? '+' : ''}{diffHours.toFixed(2)}h</span>
+                                            </div>
+                                            {hint && <div className="text-[10px] text-slate-500 italic px-1"><span className="font-bold">Hint:</span> {hint}</div>}
+                                        </div>
+                                    )}
+                                    <div className="space-y-0.5">
+                                        {reportData.entries.map((entry, i) => (
+                                            <div key={i} className="flex justify-between text-[10px] text-slate-500">
+                                                <span className="truncate max-w-[120px]" title={entry.code}>{entry.code}</span>
+                                                <span className="font-mono">{entry.hours > 0 ? `${entry.hours.toFixed(2)}h` : ''} | {formatMoney(entry.amount)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                         <div className="mt-1 pt-2 border-t border-dashed border-blue-300 bg-blue-50 -mx-4 -mb-4 px-4 pb-2 rounded-b-lg group-hover:bg-blue-100 transition-colors">
+                             <button onClick={() => setActiveTab('import')} className="w-full flex items-center justify-center gap-2 text-[10px] text-blue-700 font-bold uppercase tracking-wider py-1 hover:underline">
+                                <Icons.Clipboard className="w-3 h-3" /> Import Report
+                             </button>
+                         </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- RELEASE NOTES ---
+        const ReleaseNotes = () => (
+             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v5.3.1</span>
+                            <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Latest</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Language Clarity:</strong> Updated labels to "Projected Daily Total" vs "Official Paid Total" for better understanding.</li>
+                            <li><strong>Roadmap:</strong> Added future feature tracking (AI analysis, PDF export).</li>
+                            <li><strong>Import Guide:</strong> Added explicit subtext to import buttons to clarify purpose.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v5.2</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Smart Hints:</strong> Logic engine now suggests reasons for discrepancies (e.g. "Unpaid Meal", "Missing Premium").</li>
+                            <li><strong>Auto-Expand:</strong> Cards with mismatches automatically expand the footer.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v5.1</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Daily Cards:</strong> Switched from Shift-based to Day-based cards to correctly handle double shifts (e.g. two 12s on one day).</li>
+                            <li><strong>Mando Toggle:</strong> Added specific "MANDO" button (2x rate) which correctly doubles hours for reconciliation logic.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v5.0</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Rebranding:</strong> Renamed to "CoCo PayPatrol".</li>
+                            <li><strong>Auto-Save:</strong> All data (shifts, report, settings) now persists in browser storage.</li>
+                            <li><strong>Clear Data:</strong> Added option to wipe data for new pay periods.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v4.5</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Pay Rate Detective:</strong> New Report View analysis to spot mid-period rate changes.</li>
+                            <li><strong>Quick Settings:</strong> Moved Base Rate input to top of calculator.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v4.0 - v4.4</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Stable Release:</strong> Transitioned to Universal UMD format for offline/file-based usage.</li>
+                            <li><strong>Dual Import:</strong> Separated Timecard and Payroll Report inputs to prevent parsing conflicts.</li>
+                            <li><strong>Smart Parser:</strong> Implemented "Block-Based" parsing for ServiceNow reports.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-lg font-bold text-slate-800">v2.0 - v3.0</span>
+                        </div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Core Logic:</strong> Implemented 4/3 schedule, 12h shifts, Night Diff ($3.00), Holdover, Sick/PTO.</li>
+                            <li><strong>Visuals:</strong> Established Green/Red validation UI.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+        );
+
+        // --- ROADMAP & FEEDBACK ---
+        const HelpTab = ({detectedCodes, handleCopyAnonymized}) => (
+             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.ShieldAlert className="w-5 h-5 text-indigo-500" /> Help & Feedback</h2>
+                
+                <div className="mb-6">
+                    <h3 className="font-bold text-slate-700 mb-2">Roadmap & Feature Requests</h3>
+                    <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                        <li><strong>AI Discrepancy Analysis:</strong> Using intelligent logic to explain exactly <em>why</em> a shift is off.</li>
+                        <li><strong>Export to PDF:</strong> Generate a formal discrepancy report to send to HR.</li>
+                        <li><strong>Shift Pattern Templates:</strong> Save custom rotations (e.g. 2-2-3).</li>
+                        <li><strong>Net Pay Estimator:</strong> Estimate taxes and deductions.</li>
+                    </ul>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                        <h3 className="font-bold text-slate-700 mb-2">Discovered Pay Codes</h3>
+                        <p className="text-xs text-slate-500 mb-2">Found a bug or missing code? Use this tool to copy anonymized data.</p>
+                        {detectedCodes.length === 0 ? <span className="text-slate-400 italic text-xs">No codes detected yet. Import a PAR first.</span> : (
+                            <div className="flex flex-wrap gap-2">
+                                {detectedCodes.map(c => <span key={c} className="text-xs bg-white border px-2 py-1 rounded shadow-sm">{c}</span>)}
+                            </div>
+                        )}
+                    </div>
+                    <button onClick={handleCopyAnonymized} className="w-full py-3 bg-slate-800 text-white rounded font-bold hover:bg-slate-700 flex items-center justify-center gap-2">
+                        <Icons.Copy className="w-4 h-4"/> Copy Anonymized Debug Info
+                    </button>
+                </div>
+             </div>
+        );
+
+        // --- MAIN APP ---
+        function PayslipAuditor() {
+            const [activeTab, setActiveTab] = useState('import'); 
+            const [shifts, setShifts] = useState(() => JSON.parse(localStorage.getItem('shifts')) || []);
+            const [payrollReport, setPayrollReport] = useState(() => JSON.parse(localStorage.getItem('payrollReport')) || {}); 
+            const [expandedCards, setExpandedCards] = useState({});
+            const [importMode, setImportMode] = useState('timecard');
+            const [importText, setImportText] = useState('');
+            const [viewMode, setViewMode] = useState('biweekly'); 
+            const [detectedCodes, setDetectedCodes] = useState(() => JSON.parse(localStorage.getItem('detectedCodes')) || []);
+            
+            const [settings, setSettings] = useState(() => JSON.parse(localStorage.getItem('settings')) || {
+                baseRate: 40, maxStack: 3.0, otThreshold: 40, dtThreshold: 12,
+                workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, 
+                payPeriodAnchor: new Date().toISOString().split('T')[0], 
+            });
+            const [workdayGross, setWorkdayGross] = useState(0);
+            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+            // Persistence
+            useEffect(() => { localStorage.setItem('shifts', JSON.stringify(shifts)); }, [shifts]);
+            useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
+            useEffect(() => { localStorage.setItem('detectedCodes', JSON.stringify(detectedCodes)); }, [detectedCodes]);
+            useEffect(() => { localStorage.setItem('settings', JSON.stringify(settings)); }, [settings]);
+
+            const calculatedData = useMemo(() => {
+                const sorted = [...shifts].sort((a, b) => new Date(`${a.date}T${a.startTime}`) - new Date(`${b.date}T${b.startTime}`));
+                let weeklyAccumulator = 0, currentWeekStart = null, grandTotalPay = 0, grandTotalHours = 0;
+                const lineItems = [];
+                
+                const getWeekStart = (d) => {
+                    const date = new Date(d);
+                    const diff = date.getDate() - date.getDay() + (date.getDay() < settings.workWeekStartDay ? -7 : 0);
+                    date.setDate(diff); date.setHours(0,0,0,0); return date.getTime();
+                };
+
+                sorted.forEach(shift => {
+                    const s = new Date(`${shift.date}T${shift.startTime}`);
+                    const dow = s.getDay(), startH = s.getHours();
+                    const hasDiff = (dow === 5 || dow === 6 || dow === 0) && startH >= 14;
+                    const base = settings.baseRate + (hasDiff ? settings.nightDiffRate : 0);
+
+                    if (shift.isPaidLeave) {
+                        const ws = getWeekStart(s);
+                        if (currentWeekStart !== ws) { weeklyAccumulator = 0; currentWeekStart = ws; }
+                        weeklyAccumulator += (shift.paidLeaveHours * 60);
+                        const pay = shift.paidLeaveHours * base;
+                        lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: shift.paidLeaveHours, total: pay, isBonus: false, tags: ['Sick/PTO'] });
+                        return;
+                    }
+
+                    let e = new Date(`${shift.date}T${shift.endTime}`);
+                    if (e <= s) e.setDate(e.getDate() + 1);
+
+                    if (shift.claimFreeHour) {
+                        const bonus = settings.baseRate * settings.mealBonusHours;
+                        lineItems.push({ id: shift.id+'_b', shiftId: shift.id, date: shift.date, hours: settings.mealBonusHours, total: bonus, isBonus: true, tags: ['Meal'] });
+                    }
+
+                    let curr = new Date(s), shiftMins = 0;
+                    let segment = { startTime: new Date(curr), minutes: 0, rateMult: 0, tags: [] };
+
+                    while (curr < e) {
+                        const ws = getWeekStart(curr);
+                        if (currentWeekStart !== ws) { weeklyAccumulator = 0; currentWeekStart = ws; }
+                        
+                        const isHold = shift.isHoldover && shiftMins >= (settings.dtThreshold * 60);
+                        const isOT = weeklyAccumulator >= (settings.otThreshold * 60);
+                        let mult = 1.0; let tags = ['Base'];
+                        if (hasDiff) tags.push('Diff');
+                        if (shift.isMando) { mult += 1.0; tags.push('Mando'); }
+                        if (isHold) { mult += 1.0; tags.push('Hold'); }
+                        else if (isOT) { mult += 0.5; tags.push('OT'); }
+                        if (shift.isHoliday) { mult += (settings.holidayRate - 1.0); tags.push('Hol'); }
+                        
+                        if (mult > settings.maxStack) { mult = settings.maxStack; tags.push('Cap'); }
+
+                        if (segment.rateMult !== 0 && Math.abs(segment.rateMult - mult) > 0.01) {
+                            lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*base*segment.rateMult, tags: [...segment.tags] });
+                            segment = { startTime: new Date(curr), minutes: 0, rateMult: mult, tags: [...tags] };
+                        } else if (segment.rateMult === 0) { segment.rateMult = mult; segment.tags = [...tags]; }
+
+                        segment.minutes++; curr.setMinutes(curr.getMinutes() + 1);
+                        shiftMins++; weeklyAccumulator++;
+                    }
+                    if (segment.minutes > 0) lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*base*segment.rateMult, tags: segment.tags });
+                });
+
+                // Single aggregation loop for totals
+                lineItems.forEach(i => { 
+                    grandTotalPay += i.total;
+                    if(!i.isBonus || i.tags.includes('Sick/PTO')) grandTotalHours += i.hours; 
+                });
+                return { lineItems, grandTotalPay, grandTotalHours };
+            }, [shifts, settings]);
+
+            const dailyTotals = useMemo(() => {
+                const t = {};
+                calculatedData.lineItems.forEach(i => {
+                    if (!t[i.date]) t[i.date] = { pay: 0, hours: 0, count: 0 };
+                    t[i.date].pay += i.total;
+                    
+                    let h = i.hours;
+                    if (i.tags.some(tag => tag.includes('Mando'))) {
+                        h = h * 2;
+                    }
+
+                    if (!i.isBonus || i.tags.includes('Sick/PTO')) t[i.date].hours += h;
+                });
+                shifts.forEach(s => {
+                    if(t[s.date]) t[s.date].count = (t[s.date].count || 0) + 1;
+                });
+                return t;
+            }, [calculatedData, shifts]);
+
+            // Handlers
+            const addShift = (d) => setShifts([...shifts, { id: generateId(), date: d, startTime: '17:00', endTime: '05:00', isHoliday: false, claimFreeHour: false, isHoldover: false, isMando: false, isPaidLeave: false, paidLeaveHours: 12 }]);
+            const updateShift = (id, f, v) => setShifts(shifts.map(s => s.id === id ? { ...s, [f]: v } : s));
+            const removeShift = (id) => setShifts(shifts.filter(s => s.id !== id));
+            
+            const handleClearData = () => {
+                if(confirm("Are you sure? This will delete all saved shifts and reports.")) {
+                    setShifts([]); setPayrollReport({}); setDetectedCodes([]); localStorage.clear();
+                }
+            };
+
+            const handleImport = () => {
+                 if (importMode === 'timecard') {
+                    const res = parseTimecardHelper(importText);
+                    if(res.success) {
+                        setShifts(prev => {
+                            const uniqueNew = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime));
+                            return [...prev, ...uniqueNew];
+                        });
+                        if(res.minDate) {
+                             const minD = new Date(res.minDate + 'T12:00:00'); 
+                             const dDiff = minD.getDate() - minD.getDay(); 
+                             const anchor = new Date(minD); anchor.setDate(dDiff);
+                             setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
+                        }
+                        setImportText(''); setActiveTab('calculator'); alert(`Imported ${res.shifts.length} shifts.`);
+                    } else alert('No dates found.');
+                 } else {
+                    const res = parsePayrollReportHelper(importText, payrollReport);
+                    if(res.success) { 
+                        setPayrollReport(res.data);
+                        const codes = new Set(detectedCodes);
+                        Object.values(res.data).forEach(d => d.entries.forEach(e => codes.add(e.code)));
+                        setDetectedCodes([...codes]);
+                        setImportText(''); setActiveTab('report'); alert('Report imported.'); 
+                    }
+                    else alert('No report entries found.');
+                 }
+            };
+            
+            const handleCopyAnonymized = () => {
+                const debugData = {
+                    shifts: shifts.map(s => ({ ...s, date: "XXXX-XX-XX" })), 
+                    codesFound: detectedCodes
+                };
+                navigator.clipboard.writeText(JSON.stringify(debugData, null, 2));
+                alert("Anonymized debug data copied to clipboard!");
+            };
+
+            const groupedData = useMemo(() => {
+                const getAnchor = (d) => {
+                    const a = new Date(settings.payPeriodAnchor + 'T12:00:00'); a.setHours(0,0,0,0);
+                    const t = new Date(d); t.setHours(0,0,0,0);
+                    const idx = Math.floor((t - a) / (14 * 864e5));
+                    const start = new Date(a); start.setDate(a.getDate() + (idx * 14));
+                    return start.getTime();
+                };
+                const g = {};
+                
+                const uniqueDates = [...new Set(calculatedData.lineItems.map(i => i.date))].sort();
+                
+                uniqueDates.forEach(dateStr => {
+                     const d = new Date(dateStr + 'T12:00:00');
+                     const pk = viewMode === 'biweekly' ? getAnchor(dateStr + 'T12:00:00') : d.getTime(); 
+                     
+                     if (!g[pk]) g[pk] = { startDate: pk, endDate: pk+(13*864e5), weeks: {}, totalPay: 0, totalHours: 0 };
+                     
+                     const dayRows = calculatedData.lineItems.filter(i => i.date === dateStr);
+                     const dayShifts = shifts.filter(s => s.date === dateStr);
+                     
+                     dayRows.forEach(r => {
+                         g[pk].totalPay += r.total;
+                         if(!r.isBonus || r.tags.includes('Sick/PTO')) g[pk].totalHours += r.hours;
+                     });
+
+                     const weekIdx = Math.floor((new Date(dateStr + 'T12:00:00') - g[pk].startDate) / (7 * 864e5));
+                     const weekStart = g[pk].startDate + (weekIdx * 7 * 864e5);
+                     
+                     if (!g[pk].weeks[weekStart]) g[pk].weeks[weekStart] = { startDate: weekStart, days: [], totalPay: 0 };
+                     
+                     g[pk].weeks[weekStart].days.push({
+                         date: dateStr,
+                         shifts: dayShifts,
+                         rows: dayRows
+                     });
+                     g[pk].weeks[weekStart].totalPay += dayRows.reduce((sum,r)=>sum+r.total,0);
+                });
+                
+                return Object.values(g).sort((a,b) => b.startDate - a.startDate);
+            }, [calculatedData, viewMode, settings.payPeriodAnchor]);
+
+            // Pay Rate Analysis
+            const payRateAnalysis = useMemo(() => {
+                const analysis = {};
+                Object.values(payrollReport).forEach(day => {
+                    day.entries.forEach(entry => {
+                        if (!analysis[entry.code]) analysis[entry.code] = { rates: new Set(), totalHours: 0, totalPay: 0 };
+                        analysis[entry.code].rates.add(entry.rate);
+                        analysis[entry.code].totalHours += entry.hours;
+                        analysis[entry.code].totalPay += entry.amount;
+                    });
+                });
+                return analysis;
+            }, [payrollReport]);
+
+            return (
+                <div className="max-w-6xl mx-auto space-y-6 pb-safe">
+                    {/* NAV */}
+                    <div className="bg-slate-900 text-white p-4 sticky top-0 z-10 shadow-lg">
+                        <div className="flex justify-between items-center">
+                             <h1 className="font-bold flex gap-2"><Icons.FileText className="text-emerald-400"/> CoCo ShadowLedger</h1>
+                             <div className="flex bg-slate-800 rounded p-1">
+                                <button onClick={() => setActiveTab('import')} className={`px-3 py-1 rounded text-xs ${activeTab==='import'?'bg-slate-600 text-white':'text-slate-400'}`}>Import</button>
+                                <button onClick={() => setActiveTab('calculator')} className={`px-3 py-1 rounded text-xs ${activeTab==='calculator'?'bg-slate-600 text-white':'text-slate-400'}`}>Calc</button>
+                                <button onClick={() => setActiveTab('report')} className={`px-3 py-1 rounded text-xs ${activeTab==='report'?'bg-slate-600 text-white':'text-slate-400'}`}>Report</button>
+                                <button onClick={() => setActiveTab('reconcile')} className={`px-3 py-1 rounded text-xs ${activeTab==='reconcile'?'bg-slate-600 text-white':'text-slate-400'}`}>Audit</button>
+                                <button onClick={() => setActiveTab('notes')} className={`px-3 py-1 rounded text-xs ${activeTab==='notes'?'bg-slate-600 text-white':'text-slate-400'}`}>Notes</button>
+                                <button onClick={() => setActiveTab('feedback')} className={`px-3 py-1 rounded text-xs ${activeTab==='feedback'?'bg-slate-600 text-white':'text-slate-400'}`}>Help</button>
+                             </div>
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">Audit your EMS shifts and verify your paycheck in seconds.</div>
+                    </div>
+
+                    <div className="p-4">
+                        {activeTab === 'import' && (
+                            <div className="space-y-6">
+                                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-indigo-900">
+                                    <h3 className="font-bold text-lg mb-2 flex items-center gap-2"><Icons.CheckCircle className="w-5 h-5"/> How to Audit Your Pay</h3>
+                                    <ol className="list-decimal pl-5 space-y-1">
+                                        <li><strong>Verify Base Rate:</strong> Go to the Calculator tab and set your rate at the top (default $40).</li>
+                                        <li><strong>Import Timecard:</strong> Copy your hours from Kronos and paste them below.</li>
+                                        <li><strong>Review Shifts:</strong> Check the generated cards. Toggle "Sick/PTO", "Holdover", "Mando", or "Meal Penalty" as needed.</li>
+                                        <li><strong>Import Payroll Report (PAR):</strong> Copy your official PAR text and paste it below.</li>
+                                        <li><strong>Validate:</strong> Look for green checks on the shift cards and check the Audit tab for final reconciliation.</li>
+                                    </ol>
+                                </div>
+
+                                <div className="bg-white p-4 rounded shadow border border-slate-200">
+                                    <div className="flex gap-2 mb-4">
+                                        <button onClick={() => setImportMode('timecard')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='timecard'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>1. Timecard (TC)</button>
+                                        <button onClick={() => setImportMode('report')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='report'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>2. Payroll Report (PAR)</button>
+                                    </div>
+                                    
+                                    <div className="mb-4 text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-100">
+                                        {importMode === 'timecard' ? (
+                                            <>
+                                                <p className="font-bold text-slate-700 mb-1">Instructions:</p>
+                                                <p className="mb-2">1. Go to <a href="https://globalmedical-sso.prd.mykronos.com/timekeeping#/myTimecard?ctxt=myTimecard" target="_blank" className="text-blue-600 underline font-bold">Kronos Timecard</a>.</p>
+                                                <p className="mb-2">2. Select the correct Pay Period.</p>
+                                                <p>3. Select all text on the page (Ctrl+A), Copy (Ctrl+C), and Paste below.</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="font-bold text-slate-700 mb-1">Instructions:</p>
+                                                <p className="mb-2">1. Go to <a href="https://gmrcorp.service-now.com/gps?id=sc_cat_item&sys_id=1c0048e6dbac6090f9f045e8139619c2" target="_blank" className="text-blue-600 underline font-bold">Payroll Activity Report</a>.</p>
+                                                <p className="mb-2">2. Enter dates matching your Timecard.</p>
+                                                <p className="mb-2">3. Click Generate.</p>
+                                                <p className="mb-2 font-bold text-red-600">4. Crucial: Scroll to bottom, change 'Items per page' to 'All'.</p>
+                                                <p>5. Select All text (Ctrl+A), Copy (Ctrl+C), and Paste below.</p>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <textarea className="w-full h-48 p-2 border rounded mb-4 text-xs font-mono" value={importText} onChange={e => setImportText(e.target.value)} placeholder="Paste text here..." />
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setImportText('')} className="px-4 py-2 text-slate-500 hover:text-slate-700">Clear</button>
+                                        <button onClick={handleImport} disabled={!importText} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded font-bold shadow-sm">
+                                            {importMode === 'timecard' ? 'Process Timecard' : 'Process Payroll Report'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'notes' && <ReleaseNotes />}
+
+                        {activeTab === 'feedback' && <HelpTab detectedCodes={detectedCodes} handleCopyAnonymized={handleCopyAnonymized}/>}
+
+                        {activeTab === 'report' && (
+                            <div className="space-y-6">
+                                {/* Pay Rate Detective Card */}
+                                <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500">
+                                    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                        <Icons.Search className="w-4 h-4 text-indigo-500"/> Pay Rate Analysis
+                                    </h3>
+                                    <p className="text-xs text-slate-500 mb-3">
+                                        Automatically detected rates from your Payroll Report. <br/>
+                                        <span className="text-amber-600 font-bold">Orange rows</span> indicate a code was paid at multiple different rates (e.g. mid-period raise).
+                                    </p>
+                                    
+                                    {Object.keys(payRateAnalysis).length === 0 ? (
+                                        <div className="text-center p-4 bg-slate-50 rounded text-slate-400 text-xs italic">
+                                            Import a Payroll Report to see rate analysis.
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                            {Object.keys(payRateAnalysis).sort().map(code => {
+                                                const data = payRateAnalysis[code];
+                                                const rates = Array.from(data.rates).sort((a,b) => b-a); // Sort desc
+                                                const isMixed = rates.length > 1;
+                                                
+                                                return (
+                                                    <div key={code} className={`p-2 rounded border text-xs ${isMixed ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                                                        <div className="font-bold text-slate-700 truncate" title={code}>{code}</div>
+                                                        <div className="flex justify-between mt-1">
+                                                            <span className="text-slate-500">Rate:</span>
+                                                            <span className={`font-mono font-bold ${isMixed ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                                {isMixed ? rates.map(r => `$${r.toFixed(2)}`).join(', ') : `$${rates[0].toFixed(2)}`}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between mt-0.5 text-[10px] text-slate-400">
+                                                            <span>Total Hrs: {data.totalHours.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="bg-white p-4 rounded shadow border border-slate-200">
+                                    <h3 className="font-bold mb-4">Raw Report Data</h3>
+                                    {Object.keys(payrollReport).length === 0 ? <p className="text-slate-400">No data. Go to Import tab.</p> : (
+                                        <div className="space-y-4">
+                                            {Object.keys(payrollReport).sort().map(d => (
+                                                <div key={d} className="border-b pb-2">
+                                                    <div className="flex justify-between font-bold text-sm bg-slate-50 p-2"><span>{d}</span><span>{formatMoney(payrollReport[d].totalPay)}</span></div>
+                                                    {payrollReport[d].entries.map((e,i) => (
+                                                        <div key={i} className="flex justify-between text-xs px-2 py-1"><span>{e.code}</span><span className="font-mono">{e.hours}h | {formatMoney(e.amount)}</span></div>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'reconcile' && (
+                             <div className="bg-white p-4 rounded shadow border border-slate-200">
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    <div className="p-3 bg-slate-50 rounded">
+                                        <div className="text-xs font-bold text-slate-400">CALCULATED</div>
+                                        <div className="text-2xl font-bold text-slate-700">{formatMoney(calculatedData.grandTotalPay)}</div>
+                                    </div>
+                                    <div className="p-3 bg-white border-2 border-indigo-100 rounded">
+                                        <label className="text-xs font-bold text-indigo-600 block">WORKDAY GROSS</label>
+                                        <input type="number" className="w-full text-xl font-bold text-slate-800 outline-none" placeholder="0.00" value={workdayGross} onChange={e => setWorkdayGross(parseFloat(e.target.value)||0)} />
+                                    </div>
+                                    <div className={`p-3 rounded ${Math.abs(workdayGross - calculatedData.grandTotalPay) < 1.0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                        <div className="text-xs font-bold">DIFFERENCE</div>
+                                        <div className="text-2xl font-bold">{formatMoney(workdayGross - calculatedData.grandTotalPay)}</div>
+                                    </div>
+                                </div>
+                             </div>
+                        )}
+
+                        {activeTab === 'calculator' && (
+                            <div className="space-y-4">
+                                {/* Top Bar: Estimated Pay + Quick Settings */}
+                                <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <div>
+                                        <div className="text-xs text-slate-400 font-bold uppercase">Estimated Pay</div>
+                                        <div className="text-3xl font-bold text-indigo-600">{formatMoney(calculatedData.grandTotalPay)}</div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase block">Base Rate</label>
+                                            <div className="flex items-center">
+                                                <span className="text-slate-400 mr-1">$</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={settings.baseRate} 
+                                                    onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} 
+                                                    className="w-16 bg-transparent font-bold text-slate-700 text-lg outline-none border-b border-dashed border-slate-300 focus:border-indigo-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="h-8 w-px bg-slate-200"></div>
+                                        <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 hover:bg-white rounded-full transition-colors"><Icons.Settings className="w-5 h-5 text-slate-500" /></button>
+                                    </div>
+                                </div>
+
+                                {isSettingsOpen && (
+                                  <div className="bg-white p-4 rounded shadow border border-slate-200 grid gap-4 md:grid-cols-2 text-xs animate-in slide-in-from-top-2">
+                                     <div>
+                                        <label className="font-bold text-slate-500 block mb-1">Pay Period Start (Anchor)</label>
+                                        <input type="date" value={settings.payPeriodAnchor} onChange={(e) => setSettings({...settings, payPeriodAnchor: e.target.value})} className="w-full p-2 border rounded"/>
+                                     </div>
+                                     <div>
+                                        <label className="font-bold text-slate-500 block mb-1">Night Diff Rate ($)</label>
+                                        <input type="number" value={settings.nightDiffRate} onChange={(e) => setSettings({...settings, nightDiffRate: parseFloat(e.target.value)})} className="w-full p-2 border rounded" />
+                                     </div>
+                                     <div className="col-span-2 pt-2 border-t mt-2">
+                                        <button onClick={handleClearData} className="w-full py-2 bg-red-50 text-red-600 border border-red-200 rounded font-bold hover:bg-red-100 flex items-center justify-center gap-2">
+                                            <Icons.Trash2 className="w-4 h-4"/> Clear All Data
+                                        </button>
+                                     </div>
+                                  </div>
+                                )}
+                                
+                                {shifts.length === 0 && (
+                                    <div className="text-center p-12 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50">
+                                        <Icons.Clipboard className="w-12 h-12 text-slate-300 mx-auto mb-3"/>
+                                        <h3 className="text-slate-600 font-bold">No Shifts Found</h3>
+                                        <p className="text-slate-400 text-sm mb-4">Import your Timecard to get started.</p>
+                                        <button onClick={() => setActiveTab('import')} className="px-6 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700 transition-colors">Go to Import</button>
+                                    </div>
+                                )}
+
+                                {groupedData.map(g => (
+                                    <div key={g.startDate} className="bg-white rounded shadow overflow-hidden">
+                                        <div className="bg-slate-800 text-white p-3 flex justify-between text-sm font-bold">
+                                            <span>{new Date(g.startDate+432e5).toLocaleDateString()} - {new Date(g.endDate+432e5).toLocaleDateString()}</span>
+                                            <span>{formatMoney(g.totalPay)}</span>
+                                        </div>
+                                        <div className="p-2 grid gap-2 md:grid-cols-2">
+                                            {Object.values(g.weeks).sort((a,b)=>a.startDate-b.startDate).map(w => (
+                                                <React.Fragment key={w.startDate}>
+                                                    {Object.values(w.days).sort((a,b)=>a.date.localeCompare(b.date)).map(dayGroup => (
+                                                        <DailyCard 
+                                                            key={dayGroup.date} 
+                                                            dayGroup={dayGroup}
+                                                            settings={settings} 
+                                                            onUpdate={updateShift} 
+                                                            onRemove={removeShift}
+                                                            onAddShift={addShift}
+                                                            reportData={payrollReport[dayGroup.date]}
+                                                            dailyCalc={dailyTotals[dayGroup.date]}
+                                                            isExpanded={expandedCards[dayGroup.date]} 
+                                                            onToggleExpand={() => setExpandedCards(p => ({...p, [dayGroup.date]: !p[dayGroup.date]}))}
+                                                            setActiveTab={setActiveTab}
+                                                        />
+                                                    ))}
+                                                </React.Fragment>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<PayslipAuditor />);
+    </script>
+</body>
+</html>
