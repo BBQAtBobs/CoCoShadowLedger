@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v5.4.4</title>
+    <title>CoCo ShadowLedger v5.5</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
+    
+    <!-- Load Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load React & ReactDOM (UMD - Works without server) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Load Babel for JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
         body { background-color: #f8fafc; overscroll-behavior-y: none; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -23,32 +30,36 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        // --- GLOBALS (Destructure from window objects) ---
         const { useState, useEffect, useMemo } = React;
         const { createRoot } = ReactDOM;
         
-        // --- ICONS ---
+        // --- ICONS (Manually defined to avoid import errors) ---
         const Icons = {
-            Plus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
-            Trash2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
-            Settings: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-            ChevronDown: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>,
-            ChevronUp: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 15-6-6-6 6"/></svg>,
-            FileText: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>,
-            X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-            Search: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
-            ArrowRight: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>,
-            AlertTriangle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
-            CheckCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-            Clipboard: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>,
-            LayoutList: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/></svg>,
-            CalendarRange: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>,
-            Grid: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="3" y2="21"/><line x1="15" x2="15" y1="3" y2="21"/></svg>,
-            ExternalLink: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>,
-            ShieldAlert: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
-            Copy: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
-            Book: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
-            Info: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>,
-            Lightbulb: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            Plus: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            Trash2: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            Calendar: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
+            DollarSign: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+            Clock: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            Settings: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+            ChevronDown: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            ChevronUp: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
+            FileText: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>,
+            X: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Search: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            ArrowRight: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>,
+            AlertTriangle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
+            CheckCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+            Clipboard: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>,
+            LayoutList: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/></svg>,
+            CalendarRange: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M17 14h-6"/><path d="M13 18H7"/></svg>,
+            Grid: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="3" y2="21"/><line x1="15" x2="15" y1="3" y2="21"/></svg>,
+            ExternalLink: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>,
+            ShieldAlert: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
+            Copy: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
+            Book: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+            Info: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>,
+            Lightbulb: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
         };
 
         const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -141,13 +152,19 @@
             let currentDate = null, importCount = 0;
             const foundDates = [];
             const dateLineRegex = /^(\d{2}\/\d{2}\/\d{4})$/; 
+            const datesClearedInThisImport = new Set();
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 if (dateLineRegex.test(line) && !line.includes('-')) {
                     const [m, d, y] = line.split('/');
                     currentDate = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-                    if (!newReportData[currentDate]) newReportData[currentDate] = { entries: [], totalPay: 0, totalHours: 0 };
+                    
+                    if (!datesClearedInThisImport.has(currentDate)) {
+                        newReportData[currentDate] = { entries: [], totalPay: 0, totalHours: 0 };
+                        datesClearedInThisImport.add(currentDate);
+                    }
+                    
                     foundDates.push(currentDate);
                     continue;
                 }
@@ -173,17 +190,13 @@
         // --- DAILY CARD COMPONENT ---
         const DailyCard = ({ dayGroup, settings, onUpdate, onRemove, onAddShift, reportData, dailyCalc, isExpanded, onToggleExpand, setActiveTab }) => {
             const totalPay = dayGroup.rows.reduce((sum, r) => sum + r.total, 0);
-
-            // Validation & Hint Logic
-            let matchStatus = 'none', diff = 0, diffHours = 0;
-            let hint = null;
+            let matchStatus = 'none', diff = 0, diffHours = 0, hint = null;
 
             if (reportData) {
                 diff = reportData.totalPay - totalPay;
                 diffHours = reportData.totalHours - dailyCalc.hours;
                 matchStatus = Math.abs(diff) < 0.5 ? 'match' : 'mismatch';
 
-                // Determine Hint if Mismatch
                 if (matchStatus === 'mismatch') {
                     if (Math.abs(diffHours) > 0.1) {
                         if (diffHours > 0) hint = "Report has MORE hours. Missed punch or extra shift segment?";
@@ -195,9 +208,7 @@
                 }
             }
 
-            // Auto-Expand if Mismatch (Default behavior if not manually toggled)
             const showExpanded = isExpanded !== undefined ? isExpanded : (matchStatus === 'mismatch');
-
             let borderClass = 'border-slate-200', shadowClass = 'shadow-sm';
             if (matchStatus === 'match') { borderClass = 'border-emerald-500 border-2 shadow-emerald-50/50'; } 
             else if (matchStatus === 'mismatch') { borderClass = 'border-amber-500 border-2 bg-amber-50/10'; shadowClass = 'shadow-lg shadow-amber-100'; }
@@ -205,22 +216,16 @@
 
             return (
                 <div className={`bg-white rounded-lg p-4 relative flex flex-col transition-all ${borderClass} ${shadowClass}`}>
-                    {/* Header */}
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             {new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'long', month:'short', day:'numeric'})}
                         </span>
                         <div className="flex gap-1">
-                            <button onClick={() => onRemove(null, dayGroup.date)} className="p-1 text-slate-300 hover:text-red-500 rounded-full hover:bg-red-50" title="Delete Day">
-                                <Icons.Trash2 className="w-4 h-4"/>
-                            </button>
-                            <button onClick={() => onAddShift(dayGroup.date)} className="p-1 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50" title="Add Shift Segment">
-                                <Icons.Plus className="w-4 h-4"/>
-                            </button>
+                            <button onClick={() => onRemove(null, dayGroup.date)} className="p-1 text-slate-300 hover:text-red-500 rounded-full hover:bg-red-50" title="Delete Day"><Icons.Trash2 className="w-4 h-4"/></button>
+                            <button onClick={() => onAddShift(dayGroup.date)} className="p-1 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50" title="Add Shift Segment"><Icons.Plus className="w-4 h-4"/></button>
                         </div>
                     </div>
 
-                    {/* Shifts List */}
                     <div className="space-y-4 mb-4">
                         {dayGroup.shifts.map((shift, idx) => {
                              const startD = new Date(`2000-01-01T${shift.startTime}`);
@@ -228,15 +233,13 @@
                              if(endD <= startD) endD.setDate(endD.getDate() + 1);
                              const crossesMidnight = endD.getDate() > startD.getDate();
                              const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
-
                              const segmentRows = dayGroup.rows.filter(r => r.shiftId === shift.id);
 
                              return (
                                 <div key={shift.id} className="relative pl-3 border-l-2 border-indigo-100">
-                                    <div className="absolute right-0 top-0 z-10">
-                                        <button onClick={() => onRemove(shift.id)} className="text-slate-300 hover:text-red-500 p-1 bg-white rounded-full"><Icons.X className="w-3 h-3" /></button>
+                                    <div className="absolute right-0 top-0 z-10 bg-white rounded-full">
+                                        <button onClick={() => onRemove(shift.id)} className="text-slate-300 hover:text-red-500 p-1"><Icons.X className="w-3 h-3" /></button>
                                     </div>
-                                    
                                     <div className="mb-2 pr-6">
                                         {shift.isPaidLeave ? (
                                             <div className="flex items-center gap-2 text-sm">
@@ -256,7 +259,6 @@
                                             </div>
                                         )}
                                     </div>
-
                                     <div className="flex flex-wrap gap-1 mb-2">
                                         <button onClick={() => onUpdate(shift.id, 'isPaidLeave', !shift.isPaidLeave)} className={`px-2 py-0.5 text-[9px] font-bold rounded border ${shift.isPaidLeave ? 'bg-teal-100 text-teal-700 border-teal-200' : 'bg-white text-slate-400'}`}>PTO</button>
                                         {!shift.isPaidLeave && (
@@ -268,8 +270,6 @@
                                             </>
                                         )}
                                     </div>
-                                    
-                                    {/* Breakdown per shift */}
                                     <div className="space-y-0.5">
                                         {segmentRows.map(row => (
                                             <div key={row.id} className="flex justify-between text-[10px] text-slate-400">
@@ -284,7 +284,6 @@
                         })}
                     </div>
 
-                    {/* Footer Breakdown */}
                     <div className="text-xs border-t border-slate-100 pt-2 mb-2">
                         <div className="flex justify-between font-bold text-slate-800">
                             <span>Projected Daily Total</span>
@@ -344,16 +343,14 @@
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
                         <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.4.4</span>
+                            <span className="text-lg font-bold text-slate-800">v5.5</span>
                             <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Latest</span>
                         </div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Release Notes Fixed:</strong> Resolved bug where Release Notes tab content was hidden.</li>
-                            <li><strong>Tab Rename:</strong> Renamed "Notes" to "Release Notes" for clarity.</li>
-                            <li><strong>History Restored:</strong> Full version history back to v2.0 is now available.</li>
+                            <li><strong>Removed Audit Tab:</strong> Streamlined the app by removing the redundant manual Audit tab.</li>
                         </ul>
                     </div>
-                    <div>
+                     <div>
                         <div className="flex items-baseline gap-2 mb-2">
                             <span className="text-lg font-bold text-slate-800">v5.4.3</span>
                         </div>
@@ -508,7 +505,6 @@
                 workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, 
                 payPeriodAnchor: new Date().toISOString().split('T')[0], 
             });
-            const [workdayGross, setWorkdayGross] = useState(0);
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
             // Persistence
@@ -746,12 +742,11 @@
                                 <button onClick={() => setActiveTab('import')} className={`px-3 py-1 rounded text-xs ${activeTab==='import'?'bg-slate-600 text-white':'text-slate-400'}`}>Import</button>
                                 <button onClick={() => setActiveTab('calculator')} className={`px-3 py-1 rounded text-xs ${activeTab==='calculator'?'bg-slate-600 text-white':'text-slate-400'}`}>Dashboard</button>
                                 <button onClick={() => setActiveTab('report')} className={`px-3 py-1 rounded text-xs ${activeTab==='report'?'bg-slate-600 text-white':'text-slate-400'}`}>Report</button>
-                                <button onClick={() => setActiveTab('reconcile')} className={`px-3 py-1 rounded text-xs ${activeTab==='reconcile'?'bg-slate-600 text-white':'text-slate-400'}`}>Audit</button>
                                 <button onClick={() => setActiveTab('notes')} className={`px-3 py-1 rounded text-xs ${activeTab==='notes'?'bg-slate-600 text-white':'text-slate-400'}`}>Release Notes</button>
                                 <button onClick={() => setActiveTab('feedback')} className={`px-3 py-1 rounded text-xs ${activeTab==='feedback'?'bg-slate-600 text-white':'text-slate-400'}`}>Help</button>
                              </div>
                         </div>
-                        <div className="text-xs text-slate-400 mt-1">Audit your EMS shifts and verify your paycheck in seconds.</div>
+                        <div className="text-xs text-slate-400 mt-1">Audit your EMS shifts against your paycheck in seconds.</div>
                     </div>
 
                     <div className="p-4">
@@ -764,7 +759,7 @@
                                         <li><strong>Import Timecard:</strong> Copy your hours from Kronos and paste them below.</li>
                                         <li><strong>Review Shifts:</strong> Check the generated cards. Toggle "Sick/PTO", "Holdover", "Mando", or "Meal Penalty" as needed.</li>
                                         <li><strong>Import Payroll Report (PAR):</strong> Copy your official PAR text and paste it below.</li>
-                                        <li><strong>Validate:</strong> Look for green checks on the shift cards and check the Audit tab for final reconciliation.</li>
+                                        <li><strong>Validate:</strong> Look for green checks on the shift cards.</li>
                                     </ol>
                                 </div>
 
@@ -875,25 +870,6 @@
                                     )}
                                 </div>
                             </div>
-                        )}
-
-                        {activeTab === 'reconcile' && (
-                             <div className="bg-white p-4 rounded shadow border border-slate-200">
-                                <div className="grid gap-4 md:grid-cols-3">
-                                    <div className="p-3 bg-slate-50 rounded">
-                                        <div className="text-xs font-bold text-slate-400">CALCULATED</div>
-                                        <div className="text-2xl font-bold text-slate-700">{formatMoney(calculatedData.grandTotalPay)}</div>
-                                    </div>
-                                    <div className="p-3 bg-white border-2 border-indigo-100 rounded">
-                                        <label className="text-xs font-bold text-indigo-600 block">WORKDAY GROSS</label>
-                                        <input type="number" className="w-full text-xl font-bold text-slate-800 outline-none" placeholder="0.00" value={workdayGross} onChange={e => setWorkdayGross(parseFloat(e.target.value)||0)} />
-                                    </div>
-                                    <div className={`p-3 rounded ${Math.abs(workdayGross - calculatedData.grandTotalPay) < 1.0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                                        <div className="text-xs font-bold">DIFFERENCE</div>
-                                        <div className="text-2xl font-bold">{formatMoney(workdayGross - calculatedData.grandTotalPay)}</div>
-                                    </div>
-                                </div>
-                             </div>
                         )}
 
                         {activeTab === 'calculator' && (
