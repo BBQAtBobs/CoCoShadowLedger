@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v6.1 (Stable)</title>
+    <title>CoCo ShadowLedger v6.2.1</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -322,6 +322,33 @@
                             </button>
                             {showExpanded && (
                                 <div className="mt-2 pt-2 border-t border-dashed border-slate-300/50">
+                                    <div className="flex gap-2 mb-2">
+                                        <div className="flex-1 bg-slate-50 p-2 rounded">
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase mb-1">Projected Breakdown</p>
+                                            <div className="space-y-0.5">
+                                                {dayGroup.rows.map(row => (
+                                                    <div key={row.id} className="flex justify-between text-[10px] text-slate-600">
+                                                        <span className="truncate w-20">{row.tags.join(', ').replace('Sick/PTO', 'PTO')}</span>
+                                                        <span className="font-mono text-[9px] text-slate-400">{row.hours.toFixed(2)}h @ ${row.rate ? row.rate.toFixed(2) : '-'}</span>
+                                                        <span className="font-mono">{formatMoney(row.total)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 bg-indigo-50 p-2 rounded">
+                                            <p className="text-[9px] text-indigo-400 font-bold uppercase mb-1">Actual Breakdown</p>
+                                            <div className="space-y-0.5">
+                                                {reportData.entries.map((entry, i) => (
+                                                    <div key={i} className="flex justify-between text-[10px] text-indigo-800">
+                                                        <span className="truncate w-16" title={entry.code}>{entry.code.replace('Meal Penalty', 'C7')}</span>
+                                                        <span className="font-mono text-[9px] text-indigo-400">{entry.hours.toFixed(2)}h @ ${entry.rate.toFixed(2)}</span>
+                                                        <span className="font-mono">{formatMoney(entry.amount)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     {matchStatus === 'mismatch' && (
                                         <div className="mb-2">
                                             <div className="flex justify-between text-[10px] text-amber-600 font-medium bg-white/50 p-1 rounded mb-1">
@@ -331,14 +358,6 @@
                                             {hint && <div className="text-[10px] text-slate-500 italic px-1"><span className="font-bold">Hint:</span> {hint}</div>}
                                         </div>
                                     )}
-                                    <div className="space-y-0.5">
-                                        {reportData.entries.map((entry, i) => (
-                                            <div key={i} className="flex justify-between text-[10px] text-slate-500">
-                                                <span className="truncate max-w-[120px]" title={entry.code}>{entry.code.replace('Meal Penalty', 'Missed Meal (C7)')}</span>
-                                                <span className="font-mono">{entry.hours > 0 ? `${entry.hours.toFixed(2)}h` : ''} | {formatMoney(entry.amount)}</span>
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
                             )}
                         </div>
@@ -482,7 +501,21 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.1</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2.1</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Refactored Architecture:</strong> Componentized codebase for stability.</li>
+                            <li><strong>Fix:</strong> Corrected parser scope issues causing crashes on import.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>Math Breakdown:</strong> Added side-by-side comparison of Projected vs. Actual pay codes in card footer.</li>
+                             <li><strong>Rate Visibility:</strong> Hourly rates now displayed for every line item to help spot discrepancies.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.1</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                             <li><strong>Refactored Architecture:</strong> Componentized codebase for stability.</li>
                             <li><strong>Fix:</strong> Corrected parser scope issues causing crashes on import.</li>
@@ -563,14 +596,14 @@
                     if (shift.isPaidLeave) {
                         weeklyAccumulator += (shift.paidLeaveHours * 60);
                         const pay = shift.paidLeaveHours * base;
-                        lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: shift.paidLeaveHours, total: pay, isBonus: false, tags: ['Sick/PTO'] });
+                        lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: shift.paidLeaveHours, total: pay, rate: base, isBonus: false, tags: ['Sick/PTO'] });
                         return;
                     }
                     let e = new Date(`${shift.date}T${shift.endTime}`);
                     if (e <= s) e.setDate(e.getDate() + 1);
                     if (shift.claimFreeHour) {
                         const bonus = settings.baseRate * settings.mealBonusHours;
-                        lineItems.push({ id: shift.id+'_b', shiftId: shift.id, date: shift.date, hours: settings.mealBonusHours, total: bonus, isBonus: true, tags: ['Meal Bonus'] });
+                        lineItems.push({ id: shift.id+'_b', shiftId: shift.id, date: shift.date, hours: settings.mealBonusHours, total: bonus, rate: settings.baseRate, isBonus: true, tags: ['Meal Bonus'] });
                     }
                     let curr = new Date(s), shiftMins = 0;
                     let segment = { startTime: new Date(curr), minutes: 0, rateMult: 0, tags: [] };
@@ -590,13 +623,17 @@
                         if (mult > settings.maxStack) { mult = settings.maxStack; tags.push('Cap'); }
 
                         if (segment.rateMult !== 0 && Math.abs(segment.rateMult - mult) > 0.01) {
-                            lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*base*segment.rateMult, tags: [...segment.tags] });
+                            const rate = base * segment.rateMult;
+                            lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*rate, rate: rate, tags: [...segment.tags] });
                             segment = { startTime: new Date(curr), minutes: 0, rateMult: mult, tags: [...tags] };
                         } else if (segment.rateMult === 0) { segment.rateMult = mult; segment.tags = [...tags]; }
                         segment.minutes++; curr.setMinutes(curr.getMinutes() + 1);
                         shiftMins++; weeklyAccumulator++;
                     }
-                    if (segment.minutes > 0) lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*base*segment.rateMult, tags: segment.tags });
+                    if (segment.minutes > 0) {
+                        const rate = base * segment.rateMult;
+                        lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*rate, rate: rate, tags: segment.tags });
+                    }
                 });
                 lineItems.forEach(i => grandTotalPay += i.total);
                 return { lineItems, grandTotalPay };
