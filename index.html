@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v5.6.1</title>
+    <title>CoCo ShadowLedger v6.1 (Stable)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -99,7 +99,7 @@
         const formatMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
         const toISODateString = (y, m, d) => `${y}-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
 
-        // --- PARSERS ---
+        // --- GLOBAL PARSERS ---
         const parseTimecardHelper = (rawText) => {
             const newShifts = [];
             const currentYear = new Date().getFullYear();
@@ -221,29 +221,20 @@
         };
 
         // --- COMPONENTS ---
+
         const DailyCard = ({ dayGroup, settings, onUpdate, onRemove, onAddShift, reportData, dailyCalc, isExpanded, onToggleExpand, setActiveTab }) => {
             const totalPay = dayGroup.rows.reduce((sum, r) => sum + r.total, 0);
-
-            // Validation logic
-            let matchStatus = 'none', diff = 0, diffHours = 0;
-            let hint = null;
+            let matchStatus = 'none', diff = 0, diffHours = 0, hint = null;
 
             if (reportData) {
                 diff = reportData.totalPay - totalPay;
                 diffHours = reportData.totalHours - (dailyCalc ? dailyCalc.hours : 0);
                 matchStatus = Math.abs(diff) < 0.5 ? 'match' : 'mismatch';
-
                 if (matchStatus === 'mismatch') {
-                    if (Math.abs(diffHours) > 0.1) {
-                        if (diffHours > 0) hint = "Report has MORE hours. Missed punch?";
-                        else hint = "Report has FEWER hours. Unpaid meal?";
-                    } else if (Math.abs(diff) > 0.5) {
-                        if (diff > 0) hint = "Pay is HIGHER. Missing premium?";
-                        else hint = "Pay is LOWER. Check OT/Holdover.";
-                    }
+                    if (Math.abs(diffHours) > 0.1) hint = diffHours > 0 ? "Report has MORE hours." : "Report has FEWER hours.";
+                    else if (Math.abs(diff) > 0.5) hint = diff > 0 ? "Pay is HIGHER." : "Pay is LOWER.";
                 }
             }
-
             const showExpanded = isExpanded !== undefined ? isExpanded : (matchStatus === 'mismatch');
             let borderClass = 'border-slate-200', shadowClass = 'shadow-sm';
             if (matchStatus === 'match') { borderClass = 'border-emerald-500 border-2 shadow-emerald-50/50'; } 
@@ -253,15 +244,12 @@
             return (
                 <div className={`bg-white rounded-lg p-4 relative flex flex-col transition-all ${borderClass} ${shadowClass}`}>
                     <div className="flex justify-between items-center mb-3">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            {new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'long', month:'short', day:'numeric'})}
-                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'long', month:'short', day:'numeric'})}</span>
                         <div className="flex gap-1">
                             <button onClick={() => onRemove(null, dayGroup.date)} className="p-1 text-slate-300 hover:text-red-500 rounded-full hover:bg-red-50" title="Delete Day"><Icons.Trash2 className="w-4 h-4"/></button>
                             <button onClick={() => onAddShift(dayGroup.date)} className="p-1 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50" title="Add Shift Segment"><Icons.Plus className="w-4 h-4"/></button>
                         </div>
                     </div>
-
                     <div className="space-y-4 mb-4">
                         {dayGroup.shifts.map((shift, idx) => {
                              const startD = new Date(`2000-01-01T${shift.startTime}`);
@@ -273,9 +261,7 @@
 
                              return (
                                 <div key={shift.id} className="relative pl-3 border-l-2 border-indigo-100">
-                                    <div className="absolute right-0 top-0 z-10 bg-white rounded-full">
-                                        <button onClick={() => onRemove(shift.id)} className="text-slate-300 hover:text-red-500 p-1"><Icons.X className="w-3 h-3" /></button>
-                                    </div>
+                                    <div className="absolute right-0 top-0 z-10 bg-white rounded-full"><button onClick={() => onRemove(shift.id)} className="text-slate-300 hover:text-red-500 p-1"><Icons.X className="w-3 h-3" /></button></div>
                                     <div className="mb-2 pr-6">
                                         {shift.isPaidLeave ? (
                                             <div className="flex items-center gap-2 text-sm">
@@ -319,14 +305,9 @@
                              );
                         })}
                     </div>
-
                     <div className="text-xs border-t border-slate-100 pt-2 mb-2">
-                        <div className="flex justify-between font-bold text-slate-800">
-                            <span>Projected Daily Total</span>
-                            <span>{formatMoney(totalPay)}</span>
-                        </div>
+                        <div className="flex justify-between font-bold text-slate-800"><span>Projected Daily Total</span><span>{formatMoney(totalPay)}</span></div>
                     </div>
-
                     {matchStatus !== 'none' ? (
                         <div className={`mt-1 pt-2 border-t border-dashed ${matchStatus === 'match' ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/50'} -mx-4 -mb-4 px-4 pb-2 rounded-b-lg`}>
                             <button onClick={onToggleExpand} className="w-full flex items-center justify-between mb-1">
@@ -372,176 +353,231 @@
             );
         };
 
-        // --- RELEASE NOTES ---
-        const ReleaseNotes = () => (
+        const ImportView = ({ importMode, setImportMode, importText, setImportText, handleImport }) => {
+            const [showTutorial, setShowTutorial] = useState(false);
+            const [showPrivacyInfo, setShowPrivacyInfo] = useState(false);
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-center">
+                        <button onClick={() => setShowPrivacyInfo(!showPrivacyInfo)} className="flex items-center gap-2 px-4 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-full text-xs text-slate-600 transition-all shadow-sm">
+                            <Icons.Lock className="w-3 h-3 text-emerald-600" />
+                            <span className="font-bold text-emerald-700">Private & Offline</span>
+                            <span className="text-slate-300">|</span>
+                            <span className="underline decoration-slate-400 decoration-dotted">How is my data handled?</span>
+                        </button>
+                    </div>
+                    {showPrivacyInfo && (
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4 text-sm text-emerald-900 animate-in fade-in slide-in-from-top-2">
+                            <h4 className="font-bold mb-2 flex items-center gap-2"><Icons.CheckCircle className="w-4 h-4"/> Your Data Never Leaves This Device</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-emerald-800 opacity-90 mb-3">
+                                <li>This tool runs entirely in your browser using JavaScript.</li>
+                                <li>No data is sent to any server or cloud database.</li>
+                                <li>Data is saved locally to your device (LocalStorage) so you don't lose it on refresh.</li>
+                            </ul>
+                            <p className="text-xs text-emerald-700 font-medium"><strong>Verify it yourself:</strong> You can turn on Airplane Mode before pasting your sensitive data.</p>
+                        </div>
+                    )}
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-indigo-900">
+                         <h3 className="font-bold text-lg mb-2 flex items-center gap-2"><Icons.CheckCircle className="w-5 h-5"/> How to Audit Your Pay</h3>
+                         <ol className="list-decimal pl-5 space-y-1">
+                             <li><strong>Verify Base Rate:</strong> Check Dashboard tab.</li>
+                             <li><strong>Import Timecard:</strong> Copy hours from Kronos.</li>
+                             <li><strong>Import Payroll Report:</strong> Copy official PAR text.</li>
+                             <li><strong>Validate:</strong> Check for green checkmarks.</li>
+                         </ol>
+                    </div>
+                    <div className="bg-white p-4 rounded shadow border border-slate-200">
+                        <div className="flex gap-2 mb-4">
+                            <button onClick={() => setImportMode('timecard')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='timecard'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>1. Timecard (TC)</button>
+                            <button onClick={() => setImportMode('report')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='report'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>2. Payroll Report (PAR)</button>
+                        </div>
+                        <div className="mb-4 text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-100">
+                             {importMode === 'timecard' ? (
+                                <div>
+                                    <p className="font-bold text-slate-700 mb-1">Instructions:</p>
+                                    <p className="mb-2">1. Go to <a href="https://globalmedical-sso.prd.mykronos.com/timekeeping#/myTimecard?ctxt=myTimecard" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Kronos Timecard</a>.</p>
+                                    <p className="mb-2">2. Select correct Pay Period.</p>
+                                    <p className="mb-2 text-red-600 font-bold">3. Switch to LIST VIEW.</p>
+                                    <p>4. Select All text (Ctrl+A), Copy (Ctrl+C), Paste below.</p>
+                                </div>
+                             ) : (
+                                <div>
+                                    <p className="font-bold text-slate-700 mb-1">Instructions:</p>
+                                    <p className="mb-2">1. Go to <a href="https://gmrcorp.service-now.com/gps?id=sc_cat_item&sys_id=1c0048e6dbac6090f9f045e8139619c2" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Payroll Activity Report</a>.</p>
+                                    <p className="mb-2">2. Enter dates.</p>
+                                    <p className="mb-2 font-bold text-red-600">3. Crucial: Select 'All' items per page.</p>
+                                    <p>4. Select All text (Ctrl+A), Copy (Ctrl+C), Paste below.</p>
+                                </div>
+                             )}
+                             <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-800">
+                                <strong>📱 Mobile Tips:</strong>
+                                <ul className="list-disc pl-4 mt-1 space-y-1">
+                                    <li><strong>iOS/Android:</strong> Long-press text → Select All → Copy.</li>
+                                </ul>
+                                <button onClick={() => setShowTutorial(!showTutorial)} className="mt-3 flex items-center gap-1 font-bold text-indigo-600 hover:underline">
+                                    <Icons.PlayCircle className="w-4 h-4"/> {showTutorial ? 'Hide Tutorial' : 'Watch Tutorial'}
+                                </button>
+                                {showTutorial && (
+                                    <div className="mt-3 p-2 bg-slate-100 rounded text-center animate-in fade-in slide-in-from-top-2">
+                                        <p className="text-xs text-slate-500 mb-2 font-semibold">Tutorial for {importMode === 'timecard' ? 'Kronos' : 'ServiceNow'}</p>
+                                        <div className="h-32 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs">[GIF Placeholder]</div>
+                                    </div>
+                                )}
+                             </div>
+                        </div>
+                        <textarea className="w-full h-48 p-2 border rounded mb-4 text-xs font-mono" value={importText} onChange={e => setImportText(e.target.value)} placeholder="Paste text here..." />
+                        <div className="flex gap-2">
+                            <button onClick={() => setImportText('')} className="px-4 py-2 text-slate-500 hover:text-slate-700">Clear</button>
+                            <button onClick={handleImport} disabled={!importText} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded font-bold shadow-sm">
+                                {importMode === 'timecard' ? 'Process Timecard' : 'Process Payroll Report'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ReportView = ({ payrollReport, payRateAnalysis }) => (
+             <div className="space-y-6">
+                <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500">
+                    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2"><Icons.Search className="w-4 h-4 text-indigo-500"/> Pay Rate Analysis</h3>
+                    <p className="text-xs text-slate-500 mb-3">Orange rows indicate a code was paid at multiple different rates (e.g. mid-period raise).</p>
+                    {Object.keys(payRateAnalysis).length === 0 ? <p className="text-slate-400 text-xs italic">Import PAR to see data.</p> : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {Object.keys(payRateAnalysis).sort().map(code => {
+                                const data = payRateAnalysis[code];
+                                const rates = Array.from(data.rates).sort((a,b) => b-a);
+                                return (
+                                    <div key={code} className={`p-2 rounded border text-xs ${rates.length > 1 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                                        <div className="font-bold text-slate-700 truncate" title={code}>{code}</div>
+                                        <div className="flex justify-between mt-1"><span className="text-slate-500">Rate:</span><span className={`font-mono font-bold ${rates.length > 1 ? 'text-amber-600' : 'text-slate-600'}`}>{rates.map(r => `$${r.toFixed(2)}`).join(', ')}</span></div>
+                                        <div className="flex justify-between mt-0.5 text-[10px] text-slate-400"><span>Total Hrs: {data.totalHours.toFixed(2)}</span></div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+                <div className="bg-white p-4 rounded shadow border border-slate-200">
+                    <h3 className="font-bold mb-4">Raw Report Data</h3>
+                    {Object.keys(payrollReport).length === 0 ? <p className="text-slate-400">No data.</p> : (
+                        <div className="space-y-4">
+                            {Object.keys(payrollReport).sort().map(d => (
+                                <div key={d} className="border-b pb-2">
+                                    <div className="flex justify-between font-bold text-sm bg-slate-50 p-2"><span>{d}</span><span>{formatMoney(payrollReport[d].totalPay)}</span></div>
+                                    {payrollReport[d].entries.map((e,i) => (
+                                        <div key={i} className="flex justify-between text-xs px-2 py-1"><span>{e.code}</span><span className="font-mono">{e.hours}h | {formatMoney(e.amount)}</span></div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
+        const ReleaseNotesView = () => (
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.6.1</span>
-                            <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Latest</span>
-                        </div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.1</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Fixed Syntax Error:</strong> Resolved closing tag issue causing app crash.</li>
+                            <li><strong>Refactored Architecture:</strong> Componentized codebase for stability.</li>
+                            <li><strong>Fix:</strong> Corrected parser scope issues causing crashes on import.</li>
+                        </ul>
+                    </div>
+                     <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v5.7</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>Restored Content:</strong> Full history and help guides restored.</li>
+                            <li><strong>Crash Fixes:</strong> Resolved blank screen issues on import.</li>
                         </ul>
                     </div>
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.6</span>
-                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-bold">Stable</span>
-                        </div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v5.5</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Visual Tutorials:</strong> Added "Watch Tutorial" toggle in Import tab.</li>
-                             <li><strong>Contextual Help:</strong> Tutorial content changes based on selected import mode.</li>
+                            <li><strong>Streamlined:</strong> Removed manual Audit tab.</li>
+                            <li><strong>Terminology:</strong> "Missed Meal (C7)".</li>
                         </ul>
                     </div>
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.5.3</span>
-                        </div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v5.1</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Crash Prevention:</strong> Added strict date validation to prevent "White Screen" crashes on import.</li>
-                             <li><strong>Safe Load:</strong> App now recovers gracefully if browser data gets corrupted.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.5.2</span>
-                        </div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Stability:</strong> Added null checks for missing payroll data to prevent dashboard crashes.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.5.1</span>
-                        </div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Privacy First:</strong> Added explicit badges and explanations that all data processing happens locally on your device.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-lg font-bold text-slate-800">v5.5</span>
-                        </div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Removed Audit Tab:</strong> Streamlined the app by removing the redundant manual Audit tab.</li>
-                            <li><strong>Updated Terminology:</strong> Changed "Meal Penalty" to "Missed Meal (C7)".</li>
+                            <li><strong>Daily Cards:</strong> Shifted to day-based grouping to fix double-shift bugs.</li>
+                            <li><strong>Mando:</strong> Added 2x Mando toggle.</li>
                         </ul>
                     </div>
                 </div>
              </div>
         );
 
-        // --- HELP TAB ---
-        const HelpTab = ({detectedCodes, handleCopyAnonymized}) => (
+        const HelpView = ({detectedCodes, handleCopyAnonymized}) => (
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.ShieldAlert className="w-5 h-5 text-indigo-500" /> Help & Feedback</h2>
                 <div className="mb-6">
-                    <h3 className="font-bold text-slate-700 mb-2">Roadmap & Feature Requests</h3>
+                    <h3 className="font-bold text-slate-700 mb-2">Roadmap</h3>
                     <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                        <li><strong>AI Discrepancy Analysis:</strong> Using intelligent logic to explain exactly <em>why</em> a shift is off.</li>
-                        <li><strong>Export to PDF:</strong> Generate a formal discrepancy report to send to HR.</li>
-                        <li><strong>Net Pay Estimator:</strong> Estimate taxes and deductions.</li>
+                        <li>AI Discrepancy Analysis</li>
+                        <li>PDF Export</li>
                     </ul>
                 </div>
                 <div className="space-y-4 pt-4 border-t border-slate-100">
                     <div className="bg-slate-50 p-4 rounded border border-slate-200">
                         <h3 className="font-bold text-slate-700 mb-2">Discovered Pay Codes</h3>
-                        <p className="text-xs text-slate-500 mb-2">Found a bug or missing code? Use this tool to copy anonymized data.</p>
-                        {detectedCodes.length === 0 ? <span className="text-slate-400 italic text-xs">No codes detected yet. Import a PAR first.</span> : (
-                            <div className="flex flex-wrap gap-2">
-                                {detectedCodes.map(c => <span key={c} className="text-xs bg-white border px-2 py-1 rounded shadow-sm">{c}</span>)}
-                            </div>
-                        )}
+                        <div className="flex flex-wrap gap-2">{detectedCodes.map(c => <span key={c} className="text-xs bg-white border px-2 py-1 rounded shadow-sm">{c}</span>)}</div>
                     </div>
-                    <button onClick={handleCopyAnonymized} className="w-full py-3 bg-slate-800 text-white rounded font-bold hover:bg-slate-700 flex items-center justify-center gap-2">
-                        <Icons.Copy className="w-4 h-4"/> Copy Anonymized Debug Info
-                    </button>
+                    <button onClick={handleCopyAnonymized} className="w-full py-3 bg-slate-800 text-white rounded font-bold hover:bg-slate-700 flex items-center justify-center gap-2"><Icons.Copy className="w-4 h-4"/> Copy Debug Info</button>
                 </div>
              </div>
         );
 
-        // --- MAIN APP ---
-        function PayslipAuditor() {
-            const [activeTab, setActiveTab] = useState('import'); 
-            const [shifts, setShifts] = useState(() => {
-                try { return JSON.parse(localStorage.getItem('shifts')) || [] } catch { return [] }
-            });
-            const [payrollReport, setPayrollReport] = useState(() => {
-                try { return JSON.parse(localStorage.getItem('payrollReport')) || {} } catch { return {} }
-            });
+        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay }) => {
             const [expandedCards, setExpandedCards] = useState({});
-            const [importMode, setImportMode] = useState('timecard');
-            const [importText, setImportText] = useState('');
-            const [viewMode, setViewMode] = useState('biweekly'); 
-            const [detectedCodes, setDetectedCodes] = useState(() => {
-                try { return JSON.parse(localStorage.getItem('detectedCodes')) || [] } catch { return [] }
-            });
-            const [showPrivacyInfo, setShowPrivacyInfo] = useState(false);
-            const [showGuide, setShowGuide] = useState(true);
-            const [showTutorial, setShowTutorial] = useState(false); 
-            
-            const [settings, setSettings] = useState(() => {
-                try { return JSON.parse(localStorage.getItem('settings')) || {
-                    baseRate: 40, maxStack: 3.0, otThreshold: 40, dtThreshold: 12,
-                    workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, 
-                    payPeriodAnchor: new Date().toISOString().split('T')[0], 
-                }} catch { return {
-                    baseRate: 40, maxStack: 3.0, otThreshold: 40, dtThreshold: 12,
-                    workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, 
-                    payPeriodAnchor: new Date().toISOString().split('T')[0], 
-                }}
-            });
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+            const [showGuide, setShowGuide] = useState(true);
 
-            // Persistence
-            useEffect(() => { localStorage.setItem('shifts', JSON.stringify(shifts)); }, [shifts]);
-            useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
-            useEffect(() => { localStorage.setItem('detectedCodes', JSON.stringify(detectedCodes)); }, [detectedCodes]);
-            useEffect(() => { localStorage.setItem('settings', JSON.stringify(settings)); }, [settings]);
-
+            // Recalculate logic for display
             const calculatedData = useMemo(() => {
                 const sorted = [...shifts].sort((a, b) => new Date(`${a.date}T${a.startTime}`) - new Date(`${b.date}T${b.startTime}`));
-                let weeklyAccumulator = 0, currentWeekStart = null, grandTotalPay = 0, grandTotalHours = 0;
+                let grandTotalPay = 0;
                 const lineItems = [];
-                
                 const getWeekStart = (d) => {
                     const date = new Date(d);
                     const diff = date.getDate() - date.getDay() + (date.getDay() < settings.workWeekStartDay ? -7 : 0);
                     date.setDate(diff); date.setHours(0,0,0,0); return date.getTime();
                 };
-
+                let weeklyAccumulator = 0;
+                let currentWeekStart = null;
+                
                 sorted.forEach(shift => {
                     const s = new Date(`${shift.date}T${shift.startTime}`);
+                    const ws = getWeekStart(s);
+                    if(currentWeekStart !== ws) { weeklyAccumulator = 0; currentWeekStart = ws; }
+                    
                     const dow = s.getDay(), startH = s.getHours();
                     const hasDiff = (dow === 5 || dow === 6 || dow === 0) && startH >= 14;
                     const base = settings.baseRate + (hasDiff ? settings.nightDiffRate : 0);
 
                     if (shift.isPaidLeave) {
-                        const ws = getWeekStart(s);
-                        if (currentWeekStart !== ws) { weeklyAccumulator = 0; currentWeekStart = ws; }
                         weeklyAccumulator += (shift.paidLeaveHours * 60);
                         const pay = shift.paidLeaveHours * base;
                         lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: shift.paidLeaveHours, total: pay, isBonus: false, tags: ['Sick/PTO'] });
                         return;
                     }
-
                     let e = new Date(`${shift.date}T${shift.endTime}`);
                     if (e <= s) e.setDate(e.getDate() + 1);
-
                     if (shift.claimFreeHour) {
                         const bonus = settings.baseRate * settings.mealBonusHours;
                         lineItems.push({ id: shift.id+'_b', shiftId: shift.id, date: shift.date, hours: settings.mealBonusHours, total: bonus, isBonus: true, tags: ['Meal Bonus'] });
                     }
-
                     let curr = new Date(s), shiftMins = 0;
                     let segment = { startTime: new Date(curr), minutes: 0, rateMult: 0, tags: [] };
-
+                    
                     while (curr < e) {
-                        const ws = getWeekStart(curr);
-                        if (currentWeekStart !== ws) { weeklyAccumulator = 0; currentWeekStart = ws; }
+                        const currWs = getWeekStart(curr);
+                        if (currentWeekStart !== currWs) { weeklyAccumulator = 0; currentWeekStart = currWs; }
                         
                         const isHold = shift.isHoldover && shiftMins >= (settings.dtThreshold * 60);
                         const isOT = weeklyAccumulator >= (settings.otThreshold * 60);
@@ -551,111 +587,32 @@
                         if (isHold) { mult += 1.0; tags.push('Hold'); }
                         else if (isOT) { mult += 0.5; tags.push('OT'); }
                         if (shift.isHoliday) { mult += (settings.holidayRate - 1.0); tags.push('Hol'); }
-                        
                         if (mult > settings.maxStack) { mult = settings.maxStack; tags.push('Cap'); }
 
                         if (segment.rateMult !== 0 && Math.abs(segment.rateMult - mult) > 0.01) {
                             lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*base*segment.rateMult, tags: [...segment.tags] });
                             segment = { startTime: new Date(curr), minutes: 0, rateMult: mult, tags: [...tags] };
                         } else if (segment.rateMult === 0) { segment.rateMult = mult; segment.tags = [...tags]; }
-
                         segment.minutes++; curr.setMinutes(curr.getMinutes() + 1);
                         shiftMins++; weeklyAccumulator++;
                     }
                     if (segment.minutes > 0) lineItems.push({ id: generateId(), shiftId: shift.id, date: shift.date, hours: segment.minutes/60, total: (segment.minutes/60)*base*segment.rateMult, tags: segment.tags });
                 });
-
-                lineItems.forEach(i => { 
-                    grandTotalPay += i.total;
-                    if(!i.isBonus || i.tags.includes('Sick/PTO')) grandTotalHours += i.hours; 
-                });
-                return { lineItems, grandTotalPay, grandTotalHours };
+                lineItems.forEach(i => grandTotalPay += i.total);
+                return { lineItems, grandTotalPay };
             }, [shifts, settings]);
 
             const dailyTotals = useMemo(() => {
                 const t = {};
                 calculatedData.lineItems.forEach(i => {
-                    if (!t[i.date]) t[i.date] = { pay: 0, hours: 0, count: 0 };
+                    if (!t[i.date]) t[i.date] = { pay: 0, hours: 0 };
                     t[i.date].pay += i.total;
                     let h = i.hours;
-                    if (i.tags.some(tag => tag.includes('Mando'))) { h = h * 2; }
+                    if (i.tags.some(tag => tag.includes('Mando'))) h = h * 2;
                     if (!i.isBonus || i.tags.includes('Sick/PTO')) t[i.date].hours += h;
                 });
-                shifts.forEach(s => {
-                    if(t[s.date]) t[s.date].count = (t[s.date].count || 0) + 1;
-                });
                 return t;
-            }, [calculatedData, shifts]);
-
-            // Handlers
-            const addShift = (d) => setShifts([...shifts, { id: generateId(), date: d, startTime: '17:00', endTime: '05:00', isHoliday: false, claimFreeHour: false, isHoldover: false, isMando: false, isPaidLeave: false, paidLeaveHours: 12 }]);
-            const updateShift = (id, f, v) => setShifts(shifts.map(s => s.id === id ? { ...s, [f]: v } : s));
-            const removeShift = (id) => setShifts(shifts.filter(s => s.id !== id));
-            
-            const removePayPeriod = (start, end) => {
-                if(confirm("Are you sure you want to delete all shifts in this pay period?")) {
-                    setShifts(prev => prev.filter(s => {
-                         const d = new Date(s.date + 'T12:00:00');
-                         d.setHours(0,0,0,0);
-                         const t = d.getTime();
-                         return t < start || t > end;
-                    }));
-                }
-            };
-            
-            const removeDay = (id, dateStr) => {
-                if (id) {
-                     setShifts(shifts.filter(s => s.id !== id));
-                } else if (dateStr) {
-                    if(confirm(`Delete all shifts for ${dateStr}?`)) {
-                        setShifts(prev => prev.filter(s => s.date !== dateStr));
-                    }
-                }
-            };
-
-            const handleClearData = () => {
-                if(confirm("Are you sure? This will delete all saved shifts and reports.")) {
-                    setShifts([]); setPayrollReport({}); setDetectedCodes([]); localStorage.clear();
-                }
-            };
-
-            const handleImport = () => {
-                 if (importMode === 'timecard') {
-                    const res = parseTimecardHelper(importText);
-                    if(res.success) {
-                        setShifts(prev => {
-                            const uniqueNew = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime));
-                            return [...prev, ...uniqueNew];
-                        });
-                        if(res.minDate) {
-                             const minD = new Date(res.minDate + 'T12:00:00'); 
-                             const dDiff = minD.getDate() - minD.getDay(); 
-                             const anchor = new Date(minD); anchor.setDate(dDiff);
-                             setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
-                        }
-                        setImportText(''); setActiveTab('calculator'); alert(`Imported ${res.shifts.length} shifts.`);
-                    } else alert('No dates found.');
-                 } else {
-                    const res = parsePayrollReportHelper(importText, payrollReport);
-                    if(res.success) { 
-                        setPayrollReport(res.data);
-                        const codes = new Set(detectedCodes);
-                        Object.values(res.data).forEach(d => d.entries.forEach(e => codes.add(e.code)));
-                        setDetectedCodes([...codes]);
-                        setImportText(''); setActiveTab('calculator'); alert('Report imported.'); 
-                    }
-                    else alert('No report entries found.');
-                 }
-            };
-            
-            const handleCopyAnonymized = () => {
-                const debugData = {
-                    shifts: shifts.map(s => ({ ...s, date: "XXXX-XX-XX" })), 
-                    codesFound: detectedCodes
-                };
-                navigator.clipboard.writeText(JSON.stringify(debugData, null, 2));
-                alert("Anonymized debug data copied to clipboard!");
-            };
+            }, [calculatedData]);
 
             const groupedData = useMemo(() => {
                 const getAnchor = (d) => {
@@ -666,38 +623,101 @@
                     return start.getTime();
                 };
                 const g = {};
-                
-                const uniqueDates = [...new Set(calculatedData.lineItems.map(i => i.date))].sort();
-                
-                uniqueDates.forEach(dateStr => {
-                     const d = new Date(dateStr + 'T12:00:00');
-                     const pk = viewMode === 'biweekly' ? getAnchor(dateStr + 'T12:00:00') : d.getTime(); 
-                     
-                     if (!g[pk]) g[pk] = { startDate: pk, endDate: pk+(13*864e5), weeks: {}, totalPay: 0, totalHours: 0 };
-                     
+                [...new Set(calculatedData.lineItems.map(i => i.date))].sort().forEach(dateStr => {
+                     const pk = getAnchor(dateStr + 'T12:00:00');
+                     if (!g[pk]) g[pk] = { startDate: pk, endDate: pk+(13*864e5), weeks: {}, totalPay: 0 };
                      const dayRows = calculatedData.lineItems.filter(i => i.date === dateStr);
                      const dayShifts = shifts.filter(s => s.date === dateStr);
-                     
-                     dayRows.forEach(r => {
-                         g[pk].totalPay += r.total;
-                         if(!r.isBonus || r.tags.includes('Sick/PTO')) g[pk].totalHours += r.hours;
-                     });
-
+                     dayRows.forEach(r => g[pk].totalPay += r.total);
                      const weekIdx = Math.floor((new Date(dateStr + 'T12:00:00') - g[pk].startDate) / (7 * 864e5));
                      const weekStart = g[pk].startDate + (weekIdx * 7 * 864e5);
-                     
-                     if (!g[pk].weeks[weekStart]) g[pk].weeks[weekStart] = { startDate: weekStart, days: [], totalPay: 0 };
-                     
-                     g[pk].weeks[weekStart].days.push({
-                         date: dateStr,
-                         shifts: dayShifts,
-                         rows: dayRows
-                     });
-                     g[pk].weeks[weekStart].totalPay += dayRows.reduce((sum,r)=>sum+r.total,0);
+                     if (!g[pk].weeks[weekStart]) g[pk].weeks[weekStart] = { startDate: weekStart, days: [] };
+                     g[pk].weeks[weekStart].days.push({ date: dateStr, shifts: dayShifts, rows: dayRows });
                 });
-                
                 return Object.values(g).sort((a,b) => b.startDate - a.startDate);
-            }, [calculatedData, viewMode, settings.payPeriodAnchor]);
+            }, [calculatedData, settings.payPeriodAnchor, shifts]);
+
+            return (
+                <div className="space-y-4">
+                     {showGuide && (
+                        <div className="bg-white rounded-lg shadow-sm border p-3 flex justify-between items-center text-xs animate-in slide-in-from-top-1">
+                            <div className="flex items-center gap-2">
+                                <span className={`h-2 w-2 rounded-full ${shifts.length > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                                <span className="font-bold text-slate-700">{shifts.length === 0 ? "Step 1: Import Timecard" : "Step 2: Review & Validate"}</span>
+                            </div>
+                            <button onClick={() => setShowGuide(false)}><Icons.X className="w-3 h-3"/></button>
+                        </div>
+                    )}
+                    <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div><div className="text-xs text-slate-400 font-bold uppercase">Estimated Pay</div><div className="text-3xl font-bold text-indigo-600">{formatMoney(calculatedData.grandTotalPay)}</div></div>
+                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                            <div><label className="text-[10px] font-bold text-slate-400 uppercase block">Base Rate</label><input type="number" value={settings.baseRate} onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} className="w-16 bg-transparent font-bold text-slate-700 text-lg outline-none"/></div>
+                            <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 hover:bg-white rounded-full"><Icons.Settings className="w-5 h-5 text-slate-500" /></button>
+                        </div>
+                    </div>
+                    {isSettingsOpen && (
+                        <div className="bg-white p-4 rounded shadow border border-slate-200 grid gap-4 md:grid-cols-2 text-xs">
+                             <div><label className="font-bold text-slate-500 block mb-1">Pay Period Start</label><input type="date" value={settings.payPeriodAnchor} onChange={(e) => setSettings({...settings, payPeriodAnchor: e.target.value})} className="w-full p-2 border rounded"/></div>
+                             <div className="col-span-2 pt-2 border-t mt-2"><button onClick={handleClearData} className="w-full py-2 bg-red-50 text-red-600 border border-red-200 rounded font-bold hover:bg-red-100 flex items-center justify-center gap-2">Clear All Data</button></div>
+                        </div>
+                    )}
+                    {groupedData.map(g => (
+                        <div key={g.startDate} className="bg-white rounded shadow overflow-hidden">
+                            <div className="bg-slate-800 text-white p-3 flex justify-between text-sm font-bold">
+                                <div className="flex items-center gap-4"><button onClick={() => removePayPeriod(g.startDate, g.endDate)} className="text-slate-500 hover:text-red-400"><Icons.Trash2 className="w-4 h-4" /></button><span>{new Date(g.startDate+432e5).toLocaleDateString()} - {new Date(g.endDate+432e5).toLocaleDateString()}</span></div>
+                                <span>{formatMoney(g.totalPay)}</span>
+                            </div>
+                            <div className="p-2 grid gap-2 md:grid-cols-2">
+                                {Object.values(g.weeks).sort((a,b)=>a.startDate-b.startDate).map(w => (
+                                    <React.Fragment key={w.startDate}>
+                                        {Object.values(w.days).sort((a,b)=>a.date.localeCompare(b.date)).map(dayGroup => (
+                                            <DailyCard key={dayGroup.date} dayGroup={dayGroup} settings={settings} onUpdate={updateShift} onRemove={removeDay} onAddShift={addShift} reportData={payrollReport[dayGroup.date]} dailyCalc={dailyTotals[dayGroup.date]} isExpanded={expandedCards[dayGroup.date]} onToggleExpand={() => setExpandedCards(p => ({...p, [dayGroup.date]: !p[dayGroup.date]}))} />
+                                        ))}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // --- MAIN ORCHESTRATOR ---
+        function PayslipAuditor() {
+            const [activeTab, setActiveTab] = useState('import'); 
+            const [shifts, setShifts] = useState(() => { try { return JSON.parse(localStorage.getItem('shifts')) || [] } catch { return [] } });
+            const [payrollReport, setPayrollReport] = useState(() => { try { return JSON.parse(localStorage.getItem('payrollReport')) || {} } catch { return {} } });
+            const [detectedCodes, setDetectedCodes] = useState(() => { try { return JSON.parse(localStorage.getItem('detectedCodes')) || [] } catch { return [] } });
+            const [importMode, setImportMode] = useState('timecard');
+            const [importText, setImportText] = useState('');
+            const [settings, setSettings] = useState(() => { try { return JSON.parse(localStorage.getItem('settings')) || { baseRate: 40, maxStack: 3.0, otThreshold: 40, dtThreshold: 12, workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, payPeriodAnchor: new Date().toISOString().split('T')[0] } } catch { return {} } });
+
+            useEffect(() => { localStorage.setItem('shifts', JSON.stringify(shifts)); }, [shifts]);
+            useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
+            useEffect(() => { localStorage.setItem('detectedCodes', JSON.stringify(detectedCodes)); }, [detectedCodes]);
+            useEffect(() => { localStorage.setItem('settings', JSON.stringify(settings)); }, [settings]);
+            
+            const handleImport = () => {
+                 if (importMode === 'timecard') {
+                    const res = parseTimecardHelper(importText);
+                    if(res.success) {
+                        setShifts(prev => { const newS = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime)); return [...prev, ...newS]; });
+                        if(res.minDate) {
+                             const minD = new Date(res.minDate + 'T12:00:00'); 
+                             const dDiff = minD.getDate() - minD.getDay(); 
+                             const anchor = new Date(minD); anchor.setDate(dDiff);
+                             setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
+                        }
+                        setImportText(''); setActiveTab('calculator'); alert(`Imported ${res.shifts.length} shifts.`);
+                    } else alert('No dates found.');
+                 } else {
+                    const res = parsePayrollReportHelper(importText, payrollReport);
+                    if(res.success) { setPayrollReport(res.data); setDetectedCodes([...new Set([...detectedCodes, ...Object.values(res.data).flatMap(d => d.entries.map(e => e.code))])]); setImportText(''); setActiveTab('calculator'); alert('Report imported.'); }
+                    else alert('No report entries found.');
+                 }
+            };
+            
+            const handleCopyAnonymized = () => { navigator.clipboard.writeText(JSON.stringify({shifts, codes: detectedCodes})); alert("Copied!"); };
 
             // Pay Rate Analysis
             const payRateAnalysis = useMemo(() => {
@@ -716,7 +736,6 @@
             return (
                 <ErrorBoundary>
                     <div className="max-w-6xl mx-auto space-y-6 pb-safe">
-                        {/* NAV */}
                         <div className="bg-slate-900 text-white p-4 sticky top-0 z-10 shadow-lg">
                             <div className="flex justify-between items-center">
                                  <h1 className="font-bold flex gap-2"><Icons.FileText className="text-emerald-400"/> CoCo ShadowLedger</h1>
@@ -732,295 +751,26 @@
                         </div>
 
                         <div className="p-4">
-                            {activeTab === 'import' && (
-                                <div className="space-y-6">
-                                    {/* Privacy Badge */}
-                                    <div className="flex justify-center">
-                                        <button 
-                                            onClick={() => setShowPrivacyInfo(!showPrivacyInfo)}
-                                            className="flex items-center gap-2 px-4 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-full text-xs text-slate-600 transition-all shadow-sm"
-                                        >
-                                            <Icons.Lock className="w-3 h-3 text-emerald-600" />
-                                            <span className="font-bold text-emerald-700">Private & Offline</span>
-                                            <span className="text-slate-300">|</span>
-                                            <span className="underline decoration-slate-400 decoration-dotted">How is my data handled?</span>
-                                        </button>
-                                    </div>
-                                    
-                                    {showPrivacyInfo && (
-                                        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4 text-sm text-emerald-900 animate-in fade-in slide-in-from-top-2">
-                                            <h4 className="font-bold mb-2 flex items-center gap-2">
-                                                <Icons.CheckCircle className="w-4 h-4"/> Your Data Never Leaves This Device
-                                            </h4>
-                                            <ul className="list-disc pl-5 space-y-1 text-emerald-800 opacity-90 mb-3">
-                                                <li>This tool runs entirely in your browser using JavaScript.</li>
-                                                <li>No data is sent to any server or cloud database.</li>
-                                                <li>Data is saved locally to your device (LocalStorage) so you don't lose it on refresh.</li>
-                                            </ul>
-                                            <p className="text-xs text-emerald-700 font-medium">
-                                                <strong>Verify it yourself:</strong> You can turn on Airplane Mode before pasting your sensitive data. The calculator will still work perfectly.
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-indigo-900">
-                                        <h3 className="font-bold text-lg mb-2 flex items-center gap-2"><Icons.CheckCircle className="w-5 h-5"/> How to Audit Your Pay</h3>
-                                        <ol className="list-decimal pl-5 space-y-1">
-                                            <li><strong>Verify Base Rate:</strong> Go to the Dashboard tab and set your rate at the top (default $40).</li>
-                                            <li><strong>Import Timecard:</strong> Copy your hours from Kronos and paste them below.</li>
-                                            <li><strong>Review Shifts:</strong> Check the generated cards. Toggle "Sick/PTO", "Holdover", "Mando", or "Meal Penalty" as needed.</li>
-                                            <li><strong>Import Payroll Report (PAR):</strong> Copy your official PAR text and paste it below.</li>
-                                            <li><strong>Validate:</strong> Look for green checks on the shift cards.</li>
-                                        </ol>
-                                    </div>
-
-                                    <div className="bg-white p-4 rounded shadow border border-slate-200">
-                                        <div className="flex gap-2 mb-4">
-                                            <button onClick={() => setImportMode('timecard')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='timecard'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>1. Timecard (TC)</button>
-                                            <button onClick={() => setImportMode('report')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='report'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>2. Payroll Report (PAR)</button>
-                                        </div>
-                                        
-                                        <div className="mb-4 text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-100">
-                                            {importMode === 'timecard' ? (
-                                                <>
-                                                    <p className="font-bold text-slate-700 mb-1">Instructions:</p>
-                                                    <p className="mb-2">1. Go to <a href="https://globalmedical-sso.prd.mykronos.com/timekeeping#/myTimecard?ctxt=myTimecard" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Kronos Timecard</a>.</p>
-                                                    <p className="mb-2">2. Select the correct Pay Period.</p>
-                                                    <p className="mb-2 text-red-600 font-bold">3. Switch to LIST VIEW (Table/Grid view does not copy correctly).</p>
-                                                    <p>4. Select all text on the page (Ctrl+A), Copy (Ctrl+C), and Paste below.</p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <p className="font-bold text-slate-700 mb-1">Instructions:</p>
-                                                    <p className="mb-2">1. Go to <a href="https://gmrcorp.service-now.com/gps?id=sc_cat_item&sys_id=1c0048e6dbac6090f9f045e8139619c2" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Payroll Activity Report</a>.</p>
-                                                    <p className="mb-2">2. Enter dates matching your Timecard.</p>
-                                                    <p className="mb-2">3. Click Generate.</p>
-                                                    <p className="mb-2 font-bold text-red-600">4. Crucial: Scroll to bottom, change 'Items per page' to 'All' (prevents missing data).</p>
-                                                    <p>5. Select All text (Ctrl+A), Copy (Ctrl+C), and Paste below.</p>
-                                                </>
-                                            )}
-                                            <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-800">
-                                                <strong>📱 Mobile Copy/Paste Tips:</strong>
-                                                <ul className="list-disc pl-4 mt-1 space-y-1">
-                                                    <li><strong>iOS:</strong> Long-press text → Tap 'Select All' → Tap 'Copy'.</li>
-                                                    <li><strong>Android:</strong> Long-press text → Drag handles to select all → Tap 'Copy'.</li>
-                                                    <li><strong>Alternative:</strong> Email the text to yourself from a desktop if mobile selection is difficult.</li>
-                                                </ul>
-                                                <button onClick={() => setShowTutorial(!showTutorial)} className="mt-3 flex items-center gap-1 font-bold text-indigo-600 hover:underline">
-                                                    <Icons.PlayCircle className="w-4 h-4"/> {showTutorial ? 'Hide Tutorial' : 'Watch Tutorial'}
-                                                </button>
-                                                
-                                                {showTutorial && (
-                                                    <div className="mt-3 p-2 bg-slate-100 rounded text-center animate-in fade-in slide-in-from-top-2">
-                                                        <p className="text-xs text-slate-500 mb-2 font-semibold">How to copy from {importMode === 'timecard' ? 'Kronos' : 'ServiceNow'}</p>
-                                                        {importMode === 'timecard' ? (
-                                                            <img src="https://placehold.co/600x400/e2e8f0/475569?text=Insert+Timecard+GIF+Here" alt="Timecard Tutorial" className="mx-auto rounded shadow-sm w-full max-w-sm"/>
-                                                        ) : (
-                                                            <img src="https://placehold.co/600x400/e2e8f0/475569?text=Insert+Report+GIF+Here" alt="Report Tutorial" className="mx-auto rounded shadow-sm w-full max-w-sm"/>
-                                                        )}
-                                                        <p className="text-[10px] text-slate-400 mt-2 italic">Tip: If selection is hard, try "Select All" from the browser menu.</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <textarea className="w-full h-48 p-2 border rounded mb-4 text-xs font-mono" value={importText} onChange={e => setImportText(e.target.value)} placeholder="Paste text here..." />
-                                        <div className="flex gap-2">
-                                            <button onClick={() => setImportText('')} className="px-4 py-2 text-slate-500 hover:text-slate-700">Clear</button>
-                                            <button onClick={handleImport} disabled={!importText} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded font-bold shadow-sm">
-                                                {importMode === 'timecard' ? 'Process Timecard' : 'Process Payroll Report'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                        )}
-                        
-                        {activeTab === 'notes' && <ReleaseNotes />}
-                        
-                        {activeTab === 'feedback' && <HelpTab detectedCodes={detectedCodes} handleCopyAnonymized={handleCopyAnonymized}/>}
-
-                        {activeTab === 'report' && (
-                            <div className="space-y-6">
-                                {/* Pay Rate Detective Card */}
-                                <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500">
-                                    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                        <Icons.Search className="w-4 h-4 text-indigo-500"/> Pay Rate Analysis
-                                    </h3>
-                                    <p className="text-xs text-slate-500 mb-3">
-                                        Automatically detected rates from your Payroll Report. <br/>
-                                        <span className="text-amber-600 font-bold">Orange rows</span> indicate a code was paid at multiple different rates (e.g. mid-period raise).
-                                    </p>
-                                    
-                                    {Object.keys(payRateAnalysis).length === 0 ? (
-                                        <div className="text-center p-4 bg-slate-50 rounded text-slate-400 text-xs italic">
-                                            Import a Payroll Report to see rate analysis.
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                            {Object.keys(payRateAnalysis).sort().map(code => {
-                                                const data = payRateAnalysis[code];
-                                                const rates = Array.from(data.rates).sort((a,b) => b-a); // Sort desc
-                                                const isMixed = rates.length > 1;
-                                                
-                                                return (
-                                                    <div key={code} className={`p-2 rounded border text-xs ${isMixed ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
-                                                        <div className="font-bold text-slate-700 truncate" title={code}>{code}</div>
-                                                        <div className="flex justify-between mt-1">
-                                                            <span className="text-slate-500">Rate:</span>
-                                                            <span className={`font-mono font-bold ${isMixed ? 'text-amber-600' : 'text-slate-600'}`}>
-                                                                {isMixed ? rates.map(r => `$${r.toFixed(2)}`).join(', ') : `$${rates[0].toFixed(2)}`}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex justify-between mt-0.5 text-[10px] text-slate-400">
-                                                            <span>Total Hrs: {data.totalHours.toFixed(2)}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="bg-white p-4 rounded shadow border border-slate-200">
-                                    <h3 className="font-bold mb-4">Raw Report Data</h3>
-                                    {Object.keys(payrollReport).length === 0 ? <p className="text-slate-400">No data. Go to Import tab.</p> : (
-                                        <div className="space-y-4">
-                                            {Object.keys(payrollReport).sort().map(d => (
-                                                <div key={d} className="border-b pb-2">
-                                                    <div className="flex justify-between font-bold text-sm bg-slate-50 p-2"><span>{d}</span><span>{formatMoney(payrollReport[d].totalPay)}</span></div>
-                                                    {payrollReport[d].entries.map((e,i) => (
-                                                        <div key={i} className="flex justify-between text-xs px-2 py-1"><span>{e.code}</span><span className="font-mono">{e.hours}h | {formatMoney(e.amount)}</span></div>
-                                                    ))}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'reconcile' && (
-                             <div className="bg-white p-4 rounded shadow border border-slate-200">
-                                <div className="grid gap-4 md:grid-cols-3">
-                                    <div className="p-3 bg-slate-50 rounded">
-                                        <div className="text-xs font-bold text-slate-400">CALCULATED</div>
-                                        <div className="text-2xl font-bold text-slate-700">{formatMoney(calculatedData.grandTotalPay)}</div>
-                                    </div>
-                                    <div className="p-3 bg-white border-2 border-indigo-100 rounded">
-                                        <label className="text-xs font-bold text-indigo-600 block">WORKDAY GROSS</label>
-                                        <input type="number" className="w-full text-xl font-bold text-slate-800 outline-none" placeholder="0.00" value={workdayGross} onChange={e => setWorkdayGross(parseFloat(e.target.value)||0)} />
-                                    </div>
-                                    <div className={`p-3 rounded ${Math.abs(workdayGross - calculatedData.grandTotalPay) < 1.0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                                        <div className="text-xs font-bold">DIFFERENCE</div>
-                                        <div className="text-2xl font-bold">{formatMoney(workdayGross - calculatedData.grandTotalPay)}</div>
-                                    </div>
-                                </div>
-                             </div>
-                        )}
-
-                        {activeTab === 'calculator' && (
-                            <div className="space-y-4">
-                                {/* Guide Status Bar */}
-                                {showGuide && (
-                                    <div className="bg-white rounded-lg shadow-sm border p-3 flex justify-between items-center text-xs animate-in slide-in-from-top-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`h-2 w-2 rounded-full ${shifts.length > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-                                            <span className="font-bold text-slate-700">
-                                                {shifts.length === 0 ? "Step 1: Import Timecard" : Object.keys(payrollReport).length === 0 ? "Step 2: Review Toggles & Import Report" : "Step 3: Validate Discrepancies"}
-                                            </span>
-                                        </div>
-                                        <button onClick={() => setShowGuide(false)} className="text-slate-400 hover:text-slate-600"><Icons.X className="w-3 h-3"/></button>
-                                    </div>
-                                )}
-
-                                {/* Top Bar: Estimated Pay + Quick Settings */}
-                                <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
-                                    <div>
-                                        <div className="text-xs text-slate-400 font-bold uppercase">Estimated Pay</div>
-                                        <div className="text-3xl font-bold text-indigo-600">{formatMoney(calculatedData.grandTotalPay)}</div>
-                                    </div>
-                                    
-                                    <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                                        <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase block">Base Rate</label>
-                                            <div className="flex items-center">
-                                                <span className="text-slate-400 mr-1">$</span>
-                                                <input 
-                                                    type="number" 
-                                                    value={settings.baseRate} 
-                                                    onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} 
-                                                    className="w-16 bg-transparent font-bold text-slate-700 text-lg outline-none border-b border-dashed border-slate-300 focus:border-indigo-500"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="h-8 w-px bg-slate-200"></div>
-                                        <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 hover:bg-white rounded-full transition-colors"><Icons.Settings className="w-5 h-5 text-slate-500" /></button>
-                                    </div>
-                                </div>
-
-                                {isSettingsOpen && (
-                                  <div className="bg-white p-4 rounded shadow border border-slate-200 grid gap-4 md:grid-cols-2 text-xs animate-in slide-in-from-top-2">
-                                     <div>
-                                        <label className="font-bold text-slate-500 block mb-1">Pay Period Start (Anchor)</label>
-                                        <input type="date" value={settings.payPeriodAnchor} onChange={(e) => setSettings({...settings, payPeriodAnchor: e.target.value})} className="w-full p-2 border rounded"/>
-                                     </div>
-                                     <div>
-                                        <label className="font-bold text-slate-500 block mb-1">Night Diff Rate ($)</label>
-                                        <input type="number" value={settings.nightDiffRate} onChange={(e) => setSettings({...settings, nightDiffRate: parseFloat(e.target.value)})} className="w-full p-2 border rounded" />
-                                     </div>
-                                     <div className="col-span-2 pt-2 border-t mt-2">
-                                        <button onClick={handleClearData} className="w-full py-2 bg-red-50 text-red-600 border border-red-200 rounded font-bold hover:bg-red-100 flex items-center justify-center gap-2">
-                                            <Icons.Trash2 className="w-4 h-4"/> Clear All Data
-                                        </button>
-                                     </div>
-                                  </div>
-                                )}
-                                
-                                {shifts.length === 0 && (
-                                    <div className="text-center p-12 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50">
-                                        <Icons.Clipboard className="w-12 h-12 text-slate-300 mx-auto mb-3"/>
-                                        <h3 className="text-slate-600 font-bold">No Shifts Found</h3>
-                                        <p className="text-slate-400 text-sm mb-4">Import your Timecard to get started.</p>
-                                        <button onClick={() => setActiveTab('import')} className="px-6 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700 transition-colors">Go to Import</button>
-                                    </div>
-                                )}
-
-                                {groupedData.map(g => (
-                                    <div key={g.startDate} className="bg-white rounded shadow overflow-hidden">
-                                        <div className="bg-slate-800 text-white p-3 flex justify-between text-sm font-bold">
-                                            <div className="flex items-center gap-4">
-                                                <button onClick={() => removePayPeriod(g.startDate, g.endDate)} className="text-slate-500 hover:text-red-400 transition-colors" title="Delete Pay Period">
-                                                    <Icons.Trash2 className="w-4 h-4" />
-                                                </button>
-                                                <span>{new Date(g.startDate+432e5).toLocaleDateString()} - {new Date(g.endDate+432e5).toLocaleDateString()}</span>
-                                            </div>
-                                            <span>{formatMoney(g.totalPay)}</span>
-                                        </div>
-                                        <div className="p-2 grid gap-2 md:grid-cols-2">
-                                            {Object.values(g.weeks).sort((a,b)=>a.startDate-b.startDate).map(w => (
-                                                <React.Fragment key={w.startDate}>
-                                                    {Object.values(w.days).sort((a,b)=>a.date.localeCompare(b.date)).map(dayGroup => (
-                                                        <DailyCard 
-                                                            key={dayGroup.date} 
-                                                            dayGroup={dayGroup}
-                                                            settings={settings} 
-                                                            onUpdate={updateShift} 
-                                                            onRemove={removeDay}
-                                                            onAddShift={addShift}
-                                                            reportData={payrollReport[dayGroup.date]}
-                                                            dailyCalc={dailyTotals[dayGroup.date]}
-                                                            isExpanded={expandedCards[dayGroup.date]} 
-                                                            onToggleExpand={() => setExpandedCards(p => ({...p, [dayGroup.date]: !p[dayGroup.date]}))}
-                                                            setActiveTab={setActiveTab}
-                                                        />
-                                                    ))}
-                                                </React.Fragment>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                            {activeTab === 'import' && <ImportView importMode={importMode} setImportMode={setImportMode} importText={importText} setImportText={setImportText} handleImport={handleImport} />}
+                            {activeTab === 'report' && <ReportView payrollReport={payrollReport} payRateAnalysis={payRateAnalysis} />}
+                            {activeTab === 'notes' && <ReleaseNotesView />}
+                            {activeTab === 'feedback' && <HelpView detectedCodes={detectedCodes} handleCopyAnonymized={handleCopyAnonymized} />}
+                            {activeTab === 'calculator' && 
+                                <DashboardView 
+                                    shifts={shifts} 
+                                    payrollReport={payrollReport} 
+                                    settings={settings} 
+                                    setSettings={setSettings} 
+                                    setShifts={setShifts} 
+                                    updateShift={(id, f, v) => setShifts(shifts.map(s => s.id === id ? { ...s, [f]: v } : s))}
+                                    removeShift={(id) => setShifts(shifts.filter(s => s.id !== id))}
+                                    addShift={(d) => setShifts([...shifts, { id: generateId(), date: d, startTime: '17:00', endTime: '05:00', isHoliday: false, claimFreeHour: false, isHoldover: false, isMando: false, isPaidLeave: false, paidLeaveHours: 12 }])}
+                                    removePayPeriod={(s, e) => { if(confirm("Delete pay period?")) setShifts(prev => prev.filter(sh => { const t = new Date(sh.date+'T12:00:00').getTime(); return t < s || t > e; })); }}
+                                    handleClearData={() => { if(confirm("Clear ALL data?")) { setShifts([]); setPayrollReport({}); localStorage.clear(); } }}
+                                    removeDay={(id, dateStr) => { if (id) setShifts(shifts.filter(s => s.id !== id)); else if (dateStr && confirm(`Delete ${dateStr}?`)) setShifts(prev => prev.filter(s => s.date !== dateStr)); }}
+                                />
+                            }
+                        </div>
                     </div>
                 </ErrorBoundary>
             );
