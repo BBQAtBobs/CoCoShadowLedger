@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v6.2.2</title>
+    <title>CoCo ShadowLedger v6.3</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -259,6 +259,15 @@
                              const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
                              const segmentRows = dayGroup.rows.filter(r => r.shiftId === shift.id);
 
+                             // Calculate Pay Hrs specifically for this segment
+                             const payHours = segmentRows.reduce((acc, r) => {
+                                 let mult = 1;
+                                 if (r.tags.some(t => t.includes('Mando') || t.includes('Hold'))) mult = 2;
+                                 return acc + (r.hours * mult);
+                             }, 0);
+                             
+                             const showPayHrsBadge = (shift.isMando || shift.isHoldover) || Math.abs(payHours - estHours) > 0.1;
+
                              return (
                                 <div key={shift.id} className="relative pl-3 border-l-2 border-indigo-100">
                                     <div className="absolute right-0 top-0 z-10 bg-white rounded-full"><button onClick={() => onRemove(shift.id)} className="text-slate-300 hover:text-red-500 p-1"><Icons.X className="w-3 h-3" /></button></div>
@@ -292,15 +301,7 @@
                                             </>
                                         )}
                                     </div>
-                                    <div className="space-y-0.5">
-                                        {segmentRows.map(row => (
-                                            <div key={row.id} className="flex justify-between text-[10px] text-slate-400">
-                                                <span>{row.tags.join(', ').replace('Sick/PTO', 'PTO').replace('Meal Bonus', 'Missed Meal (C7)')}</span>
-                                                <span>{formatMoney(row.total)}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {shift.isMando && <div className="text-[9px] text-red-500 font-bold mt-1 text-right">Pay Hrs: {(estHours * 2).toFixed(2)}</div>}
+                                    {showPayHrsBadge && <div className="text-[9px] text-red-500 font-bold mt-1 text-right">Pay Hrs: {payHours.toFixed(2)}</div>}
                                 </div>
                              );
                         })}
@@ -348,7 +349,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     {matchStatus === 'mismatch' && (
                                         <div className="mb-2">
                                             <div className="flex justify-between text-[10px] text-amber-600 font-medium bg-white/50 p-1 rounded mb-1">
@@ -501,24 +501,23 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2.2</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.3</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Math Breakdown:</strong> Added side-by-side comparison of Projected vs. Actual pay codes in card footer.</li>
-                             <li><strong>Rate Visibility:</strong> Hourly rates now displayed for every line item to help spot discrepancies.</li>
+                            <li><strong>Stability Refactor:</strong> Fixed scope issues causing 'Identifier already declared' errors by cleaning up component structure.</li>
                         </ul>
                     </div>
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2.3</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Math Breakdown:</strong> Added side-by-side comparison of Projected vs. Actual pay codes in card footer.</li>
-                             <li><strong>Rate Visibility:</strong> Hourly rates now displayed for every line item to help spot discrepancies.</li>
+                            <li><strong>Corrected Holdover Logic:</strong> Holdover hours are now doubled for verification purposes.</li>
+                            <li><strong>Dynamic Pay Hrs Badge:</strong> Added a dynamic 'Pay Hrs' badge to daily cards.</li>
                         </ul>
                     </div>
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.1</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2.2</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Refactored Architecture:</strong> Componentized codebase for stability.</li>
-                            <li><strong>Fix:</strong> Corrected parser scope issues causing crashes on import.</li>
+                            <li><strong>Math Breakdown:</strong> Added side-by-side comparison of Projected vs. Actual pay codes.</li>
+                             <li><strong>Rate Visibility:</strong> Hourly rates now displayed for every line item.</li>
                         </ul>
                     </div>
                      <div>
@@ -799,6 +798,7 @@
                                     settings={settings} 
                                     setSettings={setSettings} 
                                     setShifts={setShifts} 
+                                    // Handlers passed purely for state updates
                                     updateShift={(id, f, v) => setShifts(shifts.map(s => s.id === id ? { ...s, [f]: v } : s))}
                                     removeShift={(id) => setShifts(shifts.filter(s => s.id !== id))}
                                     addShift={(d) => setShifts([...shifts, { id: generateId(), date: d, startTime: '17:00', endTime: '05:00', isHoliday: false, claimFreeHour: false, isHoldover: false, isMando: false, isPaidLeave: false, paidLeaveHours: 12 }])}
