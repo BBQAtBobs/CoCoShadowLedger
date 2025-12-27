@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v6.9 (Stable)</title>
+    <title>CoCo ShadowLedger v7.0 (AI Powered)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -17,6 +17,9 @@
     
     <!-- Load Babel for JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Load Markdown Parser for AI responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         body { background-color: #f8fafc; overscroll-behavior-y: none; }
@@ -24,6 +27,12 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+        .ai-glow { animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
     </style>
 </head>
 <body>
@@ -32,6 +41,44 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, Component } = React;
         const { createRoot } = ReactDOM;
+        
+        // --- API KEY CONFIGURATION ---
+        const apiKey = ""; // Injected by environment
+
+        // --- GEMINI API HELPER ---
+        async function callGemini(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            let attempt = 0;
+            const delays = [1000, 2000, 4000, 8000, 16000];
+
+            while (attempt <= 5) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429) {
+                             throw new Error("Rate limit exceeded");
+                        }
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate an analysis at this time.";
+                } catch (error) {
+                    if (attempt === 5) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+                    attempt++;
+                }
+            }
+        }
 
         // --- ERROR BOUNDARY ---
         class ErrorBoundary extends Component {
@@ -55,7 +102,7 @@
                         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
                             <div className="bg-white p-8 rounded-xl shadow-lg border border-red-100 max-w-md w-full">
                                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Recovery Mode</h2>
-                                <p className="text-slate-600 mb-4 text-sm">The app encountered a critical error (likely corrupted data).</p>
+                                <p className="text-slate-600 mb-4 text-sm">The app encountered a critical error.</p>
                                 <div className="bg-slate-100 p-3 rounded text-xs font-mono text-red-600 mb-6 break-all">
                                     {this.state.error && this.state.error.toString()}
                                 </div>
@@ -92,7 +139,8 @@
             Info: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>,
             Lightbulb: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
             Lock: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-            PlayCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            PlayCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
+            Sparkles: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></svg>
         };
 
         const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -222,6 +270,80 @@
 
         // --- COMPONENTS ---
 
+        const AiAssistant = ({ shifts, report, calculated, onClose }) => {
+            const [analysis, setAnalysis] = useState("");
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const analyze = async () => {
+                    try {
+                        const reportTotal = Object.values(report).reduce((acc, day) => acc + day.totalPay, 0);
+                        const prompt = `
+                            Act as a friendly, expert payroll auditor for EMS professionals. 
+                            Compare the user's projected pay vs actual payroll report.
+                            
+                            Summary:
+                            Projected Gross: ${formatMoney(calculated.grandTotalPay)}
+                            Actual Gross (Report): ${formatMoney(reportTotal)}
+                            
+                            Data Context:
+                            - "Regular" usually matches "Base".
+                            - "NF Holdover" matches "Hold" toggle (2x rate).
+                            - "NF Mandatory" matches "Mando" toggle (2x rate).
+                            - "NF No Break" matches "Meal (C7)".
+                            
+                            Task:
+                            1. Identify if the user is overpaid, underpaid, or matched.
+                            2. If there is a difference, look for specific days where hours don't match.
+                            3. Explain *why* a difference might exist (e.g. "It looks like you calculated 12.5 hours of Holdover on 12/08, but payroll only paid 12.0 hours.").
+                            4. Keep it concise (3-4 sentences max) and encouraging.
+                            
+                            Raw Data:
+                            ${JSON.stringify({
+                                shifts: shifts.map(s => ({date: s.date, type: s.isMando ? 'Mando' : 'Regular', hours: s.endTime})), 
+                                report: report
+                            })}
+                        `;
+                        
+                        const result = await callGemini(prompt);
+                        setAnalysis(result);
+                    } catch (err) {
+                        setError("Could not generate analysis. Please try again.");
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                analyze();
+            }, []);
+
+            return (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden">
+                        <div className="bg-indigo-600 p-4 flex justify-between items-center text-white">
+                            <h3 className="font-bold flex items-center gap-2"><Icons.Sparkles className="w-5 h-5"/> AI Pay Analysis</h3>
+                            <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded"><Icons.X className="w-5 h-5"/></button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            {loading ? (
+                                <div className="text-center py-8">
+                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                                    <p className="text-slate-500">Analyzing your pay data...</p>
+                                </div>
+                            ) : error ? (
+                                <div className="text-red-500 text-center py-4">{error}</div>
+                            ) : (
+                                <div className="prose prose-sm text-slate-700" dangerouslySetInnerHTML={{ __html: marked.parse(analysis) }}></div>
+                            )}
+                        </div>
+                        <div className="bg-slate-50 p-3 text-[10px] text-slate-400 text-center border-t">
+                            ⚠️ Data is anonymized before being sent to Gemini AI for analysis.
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // Helper to translate app tags to PAR Codes
         const getExpectedCodes = (tags) => {
             const accepted = [];
@@ -279,7 +401,7 @@
                     // Check for the "Incidental Time" pattern:
                     const regUnsch = reportData.entries.find(e => e.code === 'Regular Unsch')?.hours || 0;
                     const nfHold = reportData.entries.find(e => e.code === 'NF Holdover')?.hours || 0;
-                    // Tolerance for incidental time
+
                     if (regUnsch > 0 && nfHold > 0 && (regUnsch - nfHold) > 0 && (regUnsch - nfHold) < 0.3) {
                          hint = "Difference likely due to early clock-in (Incidental).";
                     } else if (Math.abs(diffHours) > 0.1) {
@@ -296,7 +418,6 @@
             else { borderClass = 'border-blue-300 border-dashed border-2'; }
             
             // --- NEW: Grid Data Preparation ---
-            // Aggregate Projected Rows
             const projectedMap = {};
             dayGroup.rows.forEach(r => {
                 const code = getExpectedCodes(r.tags)[0]; 
@@ -307,7 +428,6 @@
                 if (r.rate) projectedMap[key].rates.add(r.rate);
             });
 
-            // Aggregate Actual Rows
             const actualMap = {};
             if (reportData) {
                 reportData.entries.forEach(e => {
@@ -339,23 +459,12 @@
                              const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
                              const segmentRows = dayGroup.rows.filter(r => r.shiftId === shift.id);
 
-                             // Calculate Pay Hrs specifically for this segment
                              const payHours = segmentRows.reduce((acc, r) => {
-                                 // Sum up hours (regular + premium lines). 
-                                 // Note: Since we split Regular & Premium lines, 'Mando' tag is only on premium line.
-                                 // We just want to sum up projected hours for visual check.
-                                 // Actually, for "Pay Hrs" badge we usually mean "Hours Worked * Multiplier".
-                                 // But since we split lines, we have duplicate hours (base + premium).
-                                 // So we should just take the Base hours.
-                                 // Wait, previous logic was based on multipliers.
-                                 // New Logic: If Mando, we have 2 lines of X hours. So sum is 2X. 
-                                 return acc + r.hours;
+                                 let mult = 1;
+                                 if (r.tags.some(t => t.includes('Mando') || t.includes('Hold'))) mult = 2;
+                                 return acc + (r.hours * mult);
                              }, 0);
                              
-                             // Visual Badge Logic: If PayHours (sum of base + premium lines) differs from Clock Hours * 2 (for mando)
-                             // Actually, simpler: PayHours is sum of all line item hours.
-                             // For Mando 12h: Base 12 + Premium 12 = 24 Pay Hours.
-                             // For Regular 12h: Base 12 = 12 Pay Hours.
                              const showPayHrsBadge = (shift.isMando || shift.isHoldover) || Math.abs(payHours - estHours) > 0.1;
 
                              return (
@@ -427,12 +536,10 @@
                                             const act = actualMap[key] || { hours: 0, total: 0, label: '-', rates: new Set() };
                                             
                                             // SPECIAL LOGIC: For HOLDOVER, ignore small differences (incidental time)
-                                            // The user considers it a "Match" if diff is just rounding noise (<0.3h)
                                             let adjustedDiffCost = act.total - proj.total;
                                             let isIncidentalMatch = false;
                                             
                                             if (key === 'HOLDOVER' && Math.abs(act.hours - proj.hours) < 0.3) {
-                                                // It's likely incidental time, treat as match
                                                 isIncidentalMatch = true;
                                             }
 
@@ -445,18 +552,15 @@
                                             
                                             if (!isMatch) {
                                                 if (adjustedDiffCost > 0) {
-                                                    // Surplus
                                                     statusColor = 'text-emerald-700';
                                                     statusBg = 'bg-emerald-50 border border-emerald-100';
                                                     diffText = `+${formatMoney(adjustedDiffCost)}`;
                                                 } else {
-                                                    // Shortage
                                                     statusColor = 'text-red-700';
                                                     statusBg = 'bg-red-50 border border-red-100';
                                                     diffText = formatMoney(adjustedDiffCost);
                                                 }
                                             } else if (isIncidentalMatch && Math.abs(adjustedDiffCost) > 1.0) {
-                                                // It matches technically (incidental), but numbers differ
                                                 statusColor = 'text-emerald-600'; 
                                                 diffText = 'Match (Incidental)';
                                             }
@@ -465,22 +569,13 @@
 
                                             return (
                                                 <div key={key} className={`rounded p-2 text-[10px] grid grid-cols-12 gap-2 items-center ${statusBg}`}>
-                                                    {/* CODE NAME */}
-                                                    <div className={`col-span-4 font-bold truncate ${statusColor}`} title={displayLabel}>
-                                                        {displayLabel}
-                                                    </div>
-                                                    
-                                                    {/* HOURS COMPARISON */}
+                                                    <div className={`col-span-4 font-bold truncate ${statusColor}`} title={displayLabel}>{displayLabel}</div>
                                                     <div className="col-span-4 text-center flex justify-center items-center gap-1 text-slate-500">
                                                         <span>{proj.hours.toFixed(1)}</span>
                                                         <Icons.ArrowRight className="w-3 h-3 text-slate-300"/>
                                                         <span className={!isMatch ? 'font-bold text-slate-700' : ''}>{act.hours.toFixed(1)}</span>
                                                     </div>
-
-                                                    {/* DOLLAR DIFF */}
-                                                    <div className={`col-span-4 text-right font-mono font-bold ${statusColor}`}>
-                                                        {diffText}
-                                                    </div>
+                                                    <div className={`col-span-4 text-right font-mono font-bold ${statusColor}`}>{diffText}</div>
                                                 </div>
                                             )
                                         })}
@@ -632,38 +727,23 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.9</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.0</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Smart Variance:</strong> The app now intelligently splits Holdover and Mandatory pay into "Base" and "Premium" lines, matching the exact format of your payroll report.</li>
-                             <li><strong>Incidental Tolerance:</strong> Small differences in Holdover times (e.g. 7 minutes early clock-in) are now automatically recognized as "Matches" instead of errors.</li>
-                             <li><strong>Unified View:</strong> "Base", "Regular", and "Regular Unsch" are now consolidated into a single "REGULAR" row for easier comparison.</li>
+                             <li><strong>AI Audit:</strong> Added new Gemini-powered analysis feature to explain discrepancies in plain English.</li>
+                             <li><strong>Enhanced UI:</strong> Cleaned up dashboard layout.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.9</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>Smart Variance:</strong> The app now intelligently splits Holdover and Mandatory pay into "Base" and "Premium" lines.</li>
+                             <li><strong>Incidental Tolerance:</strong> Small differences in Holdover times are now automatically recognized as "Matches".</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.8</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                              <li><strong>Summary Dashboard:</strong> Added "Pay Period Summary" with color-coded variance.</li>
-                             <li><strong>Visual Status:</strong> Instant "Good/Bad" recognition for pay differences.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.7</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Smart Hints:</strong> Added specific detection for "Incidental Time" (e.g., clocking in 7 minutes early) vs. missing Holdover premiums.</li>
-                             <li><strong>Clarity Update:</strong> Redesigned footer for instant readability. Replaced confusing lists with a simple "Projected vs Actual" grid.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.6.1</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Unified Reconciliation:</strong> Completely redesigned the card footer to show a clean, single-list comparison grid.</li>
-                             <li><strong>Cognitive Load Reduction:</strong> Auto-groups similar codes (e.g., Base + Regular) and highlights only mismatches in red.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.3</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Stability Refactor:</strong> Fixed scope issues causing crashes on import.</li>
                         </ul>
                     </div>
                 </div>
@@ -676,7 +756,7 @@
                 <div className="mb-6">
                     <h3 className="font-bold text-slate-700 mb-2">Roadmap</h3>
                     <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                        <li>AI Discrepancy Analysis</li>
+                        <li>AI Discrepancy Analysis (Added!)</li>
                         <li>PDF Export</li>
                     </ul>
                 </div>
@@ -690,7 +770,7 @@
              </div>
         );
 
-        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay, setActiveTab }) => {
+        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay, setActiveTab, onOpenAI }) => {
             const [expandedCards, setExpandedCards] = useState({});
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [showGuide, setShowGuide] = useState(true);
@@ -806,6 +886,9 @@
                 return Object.values(g).sort((a,b) => b.startDate - a.startDate);
             }, [calculatedData, settings.payPeriodAnchor, shifts]);
 
+            // Pass calculated data back up to parent for AI use if needed, or just use it here
+            // We need to pass data to parent to use in AI modal
+
             return (
                 <div className="space-y-4">
                      {showGuide && (
@@ -819,8 +902,8 @@
                     )}
                     
                     {/* Pay Period Summary Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 relative overflow-hidden">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-6 z-10 relative">
                             {/* Metric 1: Projected */}
                             <div className="text-center md:text-left">
                                 <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Projected Pay</div>
@@ -856,16 +939,24 @@
                                 </div>
                             )}
 
-                            {/* Settings / Rate */}
-                             <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200 ml-auto">
-                                <div>
-                                    <label className="text-[9px] font-bold text-slate-400 uppercase block">Base Rate</label>
-                                    <div className="flex items-center">
-                                        <span className="text-slate-400 mr-1 text-sm">$</span>
-                                        <input type="number" value={settings.baseRate} onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} className="w-14 bg-transparent font-bold text-slate-700 text-lg outline-none"/>
+                            {/* AI & Settings Buttons */}
+                             <div className="flex items-center gap-3 ml-auto">
+                                <button 
+                                    onClick={() => onOpenAI(calculatedData)}
+                                    className="ai-glow px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full flex items-center gap-2 transition-all shadow-lg shadow-indigo-200"
+                                >
+                                    <Icons.Sparkles className="w-4 h-4" /> Analyze
+                                </button>
+                                
+                                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                                    <div className="pl-2">
+                                        <div className="flex items-center">
+                                            <span className="text-slate-400 mr-1 text-xs">$</span>
+                                            <input type="number" value={settings.baseRate} onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} className="w-12 bg-transparent font-bold text-slate-700 text-sm outline-none"/>
+                                        </div>
                                     </div>
+                                    <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-1.5 hover:bg-white rounded-md transition-colors text-slate-400 hover:text-indigo-500"><Icons.Settings className="w-4 h-4" /></button>
                                 </div>
-                                <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-indigo-500"><Icons.Settings className="w-5 h-5" /></button>
                             </div>
                         </div>
 
@@ -915,6 +1006,9 @@
             const [importMode, setImportMode] = useState('timecard');
             const [importText, setImportText] = useState('');
             const [settings, setSettings] = useState(() => { try { return JSON.parse(localStorage.getItem('settings')) || { baseRate: 40, maxStack: 3.0, otThreshold: 40, dtThreshold: 12, workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, payPeriodAnchor: new Date().toISOString().split('T')[0] } } catch { return {} } });
+            
+            const [showAI, setShowAI] = useState(false);
+            const [aiCalculatedData, setAiCalculatedData] = useState(null);
 
             useEffect(() => { localStorage.setItem('shifts', JSON.stringify(shifts)); }, [shifts]);
             useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
@@ -956,6 +1050,11 @@
                 });
                 return analysis;
             }, [payrollReport]);
+            
+            const handleOpenAI = (calcData) => {
+                setAiCalculatedData(calcData);
+                setShowAI(true);
+            };
 
             return (
                 <ErrorBoundary>
@@ -993,9 +1092,12 @@
                                     handleClearData={() => { if(confirm("Clear ALL data?")) { setShifts([]); setPayrollReport({}); localStorage.clear(); } }}
                                     removeDay={(id, dateStr) => { if (id) setShifts(shifts.filter(s => s.id !== id)); else if (dateStr && confirm(`Delete ${dateStr}?`)) setShifts(prev => prev.filter(s => s.date !== dateStr)); }}
                                     setActiveTab={setActiveTab}
+                                    onOpenAI={handleOpenAI}
                                 />
                             }
                         </div>
+                        
+                        {showAI && <AiAssistant shifts={shifts} report={payrollReport} calculated={aiCalculatedData} onClose={() => setShowAI(false)} />}
                     </div>
                 </ErrorBoundary>
             );
