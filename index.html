@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v6.8 (Stable)</title>
+    <title>CoCo ShadowLedger v6.9 (Stable)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -277,10 +277,9 @@
                 // --- SMART HINT LOGIC ---
                 if (matchStatus === 'mismatch') {
                     // Check for the "Incidental Time" pattern:
-                    // Regular Unsch exists AND NF Holdover exists, AND Regular Unsch is > NF Holdover by small amount
                     const regUnsch = reportData.entries.find(e => e.code === 'Regular Unsch')?.hours || 0;
                     const nfHold = reportData.entries.find(e => e.code === 'NF Holdover')?.hours || 0;
-
+                    // Tolerance for incidental time
                     if (regUnsch > 0 && nfHold > 0 && (regUnsch - nfHold) > 0 && (regUnsch - nfHold) < 0.3) {
                          hint = "Difference likely due to early clock-in (Incidental).";
                     } else if (Math.abs(diffHours) > 0.1) {
@@ -297,6 +296,7 @@
             else { borderClass = 'border-blue-300 border-dashed border-2'; }
             
             // --- NEW: Grid Data Preparation ---
+            // Aggregate Projected Rows
             const projectedMap = {};
             dayGroup.rows.forEach(r => {
                 const code = getExpectedCodes(r.tags)[0]; 
@@ -307,6 +307,7 @@
                 if (r.rate) projectedMap[key].rates.add(r.rate);
             });
 
+            // Aggregate Actual Rows
             const actualMap = {};
             if (reportData) {
                 reportData.entries.forEach(e => {
@@ -340,11 +341,21 @@
 
                              // Calculate Pay Hrs specifically for this segment
                              const payHours = segmentRows.reduce((acc, r) => {
-                                 let mult = 1;
-                                 if (r.tags.some(t => t.includes('Mando') || t.includes('Hold'))) mult = 2;
-                                 return acc + (r.hours * mult);
+                                 // Sum up hours (regular + premium lines). 
+                                 // Note: Since we split Regular & Premium lines, 'Mando' tag is only on premium line.
+                                 // We just want to sum up projected hours for visual check.
+                                 // Actually, for "Pay Hrs" badge we usually mean "Hours Worked * Multiplier".
+                                 // But since we split lines, we have duplicate hours (base + premium).
+                                 // So we should just take the Base hours.
+                                 // Wait, previous logic was based on multipliers.
+                                 // New Logic: If Mando, we have 2 lines of X hours. So sum is 2X. 
+                                 return acc + r.hours;
                              }, 0);
                              
+                             // Visual Badge Logic: If PayHours (sum of base + premium lines) differs from Clock Hours * 2 (for mando)
+                             // Actually, simpler: PayHours is sum of all line item hours.
+                             // For Mando 12h: Base 12 + Premium 12 = 24 Pay Hours.
+                             // For Regular 12h: Base 12 = 12 Pay Hours.
                              const showPayHrsBadge = (shift.isMando || shift.isHoldover) || Math.abs(payHours - estHours) > 0.1;
 
                              return (
@@ -415,26 +426,39 @@
                                             const proj = projectedMap[key] || { hours: 0, total: 0, label: key, rates: new Set() };
                                             const act = actualMap[key] || { hours: 0, total: 0, label: '-', rates: new Set() };
                                             
-                                            const diffCost = act.total - proj.total;
-                                            const isMatch = Math.abs(diffCost) < 1.0; // Looser tolerance for rounding
+                                            // SPECIAL LOGIC: For HOLDOVER, ignore small differences (incidental time)
+                                            // The user considers it a "Match" if diff is just rounding noise (<0.3h)
+                                            let adjustedDiffCost = act.total - proj.total;
+                                            let isIncidentalMatch = false;
                                             
-                                            // Determine Status
+                                            if (key === 'HOLDOVER' && Math.abs(act.hours - proj.hours) < 0.3) {
+                                                // It's likely incidental time, treat as match
+                                                isIncidentalMatch = true;
+                                            }
+
+                                            const isMatch = Math.abs(adjustedDiffCost) < 1.0 || isIncidentalMatch;
+                                            
+                                            // Determine Status Colors
                                             let statusColor = 'text-slate-400';
                                             let statusBg = 'bg-slate-50';
                                             let diffText = 'Match';
                                             
                                             if (!isMatch) {
-                                                if (diffCost > 0) {
+                                                if (adjustedDiffCost > 0) {
                                                     // Surplus
                                                     statusColor = 'text-emerald-700';
                                                     statusBg = 'bg-emerald-50 border border-emerald-100';
-                                                    diffText = `+${formatMoney(diffCost)}`;
+                                                    diffText = `+${formatMoney(adjustedDiffCost)}`;
                                                 } else {
                                                     // Shortage
                                                     statusColor = 'text-red-700';
                                                     statusBg = 'bg-red-50 border border-red-100';
-                                                    diffText = formatMoney(diffCost);
+                                                    diffText = formatMoney(adjustedDiffCost);
                                                 }
+                                            } else if (isIncidentalMatch && Math.abs(adjustedDiffCost) > 1.0) {
+                                                // It matches technically (incidental), but numbers differ
+                                                statusColor = 'text-emerald-600'; 
+                                                diffText = 'Match (Incidental)';
                                             }
 
                                             const displayLabel = act.label !== '-' ? act.label.replace('Meal Penalty', 'C7') : proj.label;
@@ -450,7 +474,7 @@
                                                     <div className="col-span-4 text-center flex justify-center items-center gap-1 text-slate-500">
                                                         <span>{proj.hours.toFixed(1)}</span>
                                                         <Icons.ArrowRight className="w-3 h-3 text-slate-300"/>
-                                                        <span className={act.hours !== proj.hours ? 'font-bold text-slate-700' : ''}>{act.hours.toFixed(1)}</span>
+                                                        <span className={!isMatch ? 'font-bold text-slate-700' : ''}>{act.hours.toFixed(1)}</span>
                                                     </div>
 
                                                     {/* DOLLAR DIFF */}
@@ -608,10 +632,18 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.8</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Latest</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.9</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Summary Dashboard:</strong> Added a high-level "Pay Period Summary" at the top of the dashboard showing Total Projected, Actual, and Variance.</li>
-                             <li><strong>Visual Status:</strong> Color-coded variance indicators for instant "Good/Bad" recognition.</li>
+                             <li><strong>Smart Variance:</strong> The app now intelligently splits Holdover and Mandatory pay into "Base" and "Premium" lines, matching the exact format of your payroll report.</li>
+                             <li><strong>Incidental Tolerance:</strong> Small differences in Holdover times (e.g. 7 minutes early clock-in) are now automatically recognized as "Matches" instead of errors.</li>
+                             <li><strong>Unified View:</strong> "Base", "Regular", and "Regular Unsch" are now consolidated into a single "REGULAR" row for easier comparison.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.8</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>Summary Dashboard:</strong> Added "Pay Period Summary" with color-coded variance.</li>
+                             <li><strong>Visual Status:</strong> Instant "Good/Bad" recognition for pay differences.</li>
                         </ul>
                     </div>
                     <div>
@@ -888,10 +920,6 @@
             useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
             useEffect(() => { localStorage.setItem('detectedCodes', JSON.stringify(detectedCodes)); }, [detectedCodes]);
             useEffect(() => { localStorage.setItem('settings', JSON.stringify(settings)); }, [settings]);
-
-            useEffect(() => {
-                // Initial data load safety check could go here if needed
-            }, []);
             
             const handleImport = () => {
                  if (importMode === 'timecard') {
