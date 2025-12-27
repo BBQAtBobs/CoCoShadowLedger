@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v6.3.1</title>
+    <title>CoCo ShadowLedger v6.8 (Stable)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -222,6 +222,49 @@
 
         // --- COMPONENTS ---
 
+        // Helper to translate app tags to PAR Codes
+        const getExpectedCodes = (tags) => {
+            const accepted = [];
+            if (tags.includes('Mando')) {
+                accepted.push('NF Mandatory');
+            } else if (tags.includes('Hold')) {
+                accepted.push('NF Holdover');
+            } else if (tags.includes('Meal Bonus')) {
+                accepted.push('NF No Break');
+            } else if (tags.includes('Sick/PTO')) {
+                accepted.push('Paid Time Off (PTO)');
+                accepted.push('Sick');
+            } else if (tags.includes('Hol')) {
+                accepted.push('NF Holiday');
+                accepted.push('Holiday');
+            } else if (tags.includes('OT')) {
+                accepted.push('Overtime');
+                accepted.push('Overtime Unsch');
+            } else {
+                // Base / Regular
+                accepted.push('Regular');
+                accepted.push('Regular Unsch');
+                accepted.push('Regular XSHFT');
+                accepted.push('Non Unit');
+                accepted.push('Train Reg');
+                accepted.push('Meeting');
+            }
+            return accepted;
+        };
+        
+        // Helper to normalize PAR Codes for grouping
+        const normalizeCodeForComparison = (code) => {
+            const c = code.toLowerCase();
+            if (c.includes('regular') || c.includes('base') || c.includes('non unit') || c.includes('train reg')) return 'REGULAR';
+            if (c.includes('mandatory') || c.includes('mando')) return 'MANDO';
+            if (c.includes('holdover') || c.includes('hold')) return 'HOLDOVER';
+            if (c.includes('no break') || c.includes('meal')) return 'MEAL';
+            if (c.includes('holiday') || c.includes('hol')) return 'HOLIDAY';
+            if (c.includes('overtime') || c.includes('ot')) return 'OVERTIME';
+            if (c.includes('sick') || c.includes('pto')) return 'PTO';
+            return c.toUpperCase();
+        };
+
         const DailyCard = ({ dayGroup, settings, onUpdate, onRemove, onAddShift, reportData, dailyCalc, isExpanded, onToggleExpand, setActiveTab }) => {
             const totalPay = dayGroup.rows.reduce((sum, r) => sum + r.total, 0);
             let matchStatus = 'none', diff = 0, diffHours = 0, hint = null;
@@ -230,9 +273,21 @@
                 diff = reportData.totalPay - totalPay;
                 diffHours = reportData.totalHours - (dailyCalc ? dailyCalc.hours : 0);
                 matchStatus = Math.abs(diff) < 0.5 ? 'match' : 'mismatch';
+
+                // --- SMART HINT LOGIC ---
                 if (matchStatus === 'mismatch') {
-                    if (Math.abs(diffHours) > 0.1) hint = diffHours > 0 ? "Report has MORE hours." : "Report has FEWER hours.";
-                    else if (Math.abs(diff) > 0.5) hint = diff > 0 ? "Pay is HIGHER." : "Pay is LOWER.";
+                    // Check for the "Incidental Time" pattern:
+                    // Regular Unsch exists AND NF Holdover exists, AND Regular Unsch is > NF Holdover by small amount
+                    const regUnsch = reportData.entries.find(e => e.code === 'Regular Unsch')?.hours || 0;
+                    const nfHold = reportData.entries.find(e => e.code === 'NF Holdover')?.hours || 0;
+
+                    if (regUnsch > 0 && nfHold > 0 && (regUnsch - nfHold) > 0 && (regUnsch - nfHold) < 0.3) {
+                         hint = "Difference likely due to early clock-in (Incidental).";
+                    } else if (Math.abs(diffHours) > 0.1) {
+                        hint = diffHours > 0 ? "Report has MORE hours." : "Report has FEWER hours.";
+                    } else if (Math.abs(diff) > 0.5) {
+                        hint = diff > 0 ? "Pay is HIGHER." : "Pay is LOWER.";
+                    }
                 }
             }
             const showExpanded = isExpanded !== undefined ? isExpanded : (matchStatus === 'mismatch');
@@ -240,6 +295,30 @@
             if (matchStatus === 'match') { borderClass = 'border-emerald-500 border-2 shadow-emerald-50/50'; } 
             else if (matchStatus === 'mismatch') { borderClass = 'border-amber-500 border-2 bg-amber-50/10'; shadowClass = 'shadow-lg shadow-amber-100'; }
             else { borderClass = 'border-blue-300 border-dashed border-2'; }
+            
+            // --- NEW: Grid Data Preparation ---
+            const projectedMap = {};
+            dayGroup.rows.forEach(r => {
+                const code = getExpectedCodes(r.tags)[0]; 
+                const key = normalizeCodeForComparison(code);
+                if (!projectedMap[key]) projectedMap[key] = { label: code, hours: 0, total: 0, rates: new Set() };
+                projectedMap[key].hours += r.hours;
+                projectedMap[key].total += r.total;
+                if (r.rate) projectedMap[key].rates.add(r.rate);
+            });
+
+            const actualMap = {};
+            if (reportData) {
+                reportData.entries.forEach(e => {
+                    const key = normalizeCodeForComparison(e.code);
+                    if (!actualMap[key]) actualMap[key] = { label: e.code, hours: 0, total: 0, rates: new Set() };
+                    actualMap[key].hours += e.hours;
+                    actualMap[key].total += e.amount;
+                    actualMap[key].rates.add(e.rate);
+                });
+            }
+
+            const allKeys = new Set([...Object.keys(projectedMap), ...Object.keys(actualMap)]);
 
             return (
                 <div className={`bg-white rounded-lg p-4 relative flex flex-col transition-all ${borderClass} ${shadowClass}`}>
@@ -262,7 +341,6 @@
                              // Calculate Pay Hrs specifically for this segment
                              const payHours = segmentRows.reduce((acc, r) => {
                                  let mult = 1;
-                                 // Check for both Mando and Hold for doubling
                                  if (r.tags.some(t => t.includes('Mando') || t.includes('Hold'))) mult = 2;
                                  return acc + (r.hours * mult);
                              }, 0);
@@ -324,41 +402,68 @@
                             </button>
                             {showExpanded && (
                                 <div className="mt-2 pt-2 border-t border-dashed border-slate-300/50">
-                                    <div className="flex gap-2 mb-2">
-                                        <div className="flex-1 bg-slate-50 p-2 rounded">
-                                            <p className="text-[9px] text-slate-400 font-bold uppercase mb-1">Projected Breakdown</p>
-                                            <div className="space-y-0.5">
-                                                {dayGroup.rows.map(row => (
-                                                    <div key={row.id} className="flex justify-between text-[10px] text-slate-600">
-                                                        <span className="truncate w-20">{row.tags.join(', ').replace('Sick/PTO', 'PTO').replace('Meal Bonus', 'Missed Meal (C7)')}</span>
-                                                        <span className="font-mono text-[9px] text-slate-400">{row.hours.toFixed(2)}h @ ${row.rate ? row.rate.toFixed(2) : '-'}</span>
-                                                        <span className="font-mono">{formatMoney(row.total)}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                    {/* Reconciliation Grid Logic */}
+                                    <div className="space-y-1">
+                                        {/* HEADER */}
+                                        <div className="grid grid-cols-12 gap-2 text-[9px] font-bold text-slate-400 uppercase mb-2 px-2">
+                                            <div className="col-span-4">Pay Code</div>
+                                            <div className="col-span-4 text-center">Hours</div>
+                                            <div className="col-span-4 text-right">Diff</div>
                                         </div>
-                                        <div className="flex-1 bg-indigo-50 p-2 rounded">
-                                            <p className="text-[9px] text-indigo-400 font-bold uppercase mb-1">Actual Breakdown</p>
-                                            <div className="space-y-0.5">
-                                                {reportData.entries.map((entry, i) => (
-                                                    <div key={i} className="flex justify-between text-[10px] text-indigo-800">
-                                                        <span className="truncate w-16" title={entry.code}>{entry.code.replace('Meal Penalty', 'C7')}</span>
-                                                        <span className="font-mono text-[9px] text-indigo-400">{entry.hours.toFixed(2)}h @ ${entry.rate.toFixed(2)}</span>
-                                                        <span className="font-mono">{formatMoney(entry.amount)}</span>
+                                        
+                                        {Array.from(allKeys).sort().map(key => {
+                                            const proj = projectedMap[key] || { hours: 0, total: 0, label: key, rates: new Set() };
+                                            const act = actualMap[key] || { hours: 0, total: 0, label: '-', rates: new Set() };
+                                            
+                                            const diffCost = act.total - proj.total;
+                                            const isMatch = Math.abs(diffCost) < 1.0; // Looser tolerance for rounding
+                                            
+                                            // Determine Status
+                                            let statusColor = 'text-slate-400';
+                                            let statusBg = 'bg-slate-50';
+                                            let diffText = 'Match';
+                                            
+                                            if (!isMatch) {
+                                                if (diffCost > 0) {
+                                                    // Surplus
+                                                    statusColor = 'text-emerald-700';
+                                                    statusBg = 'bg-emerald-50 border border-emerald-100';
+                                                    diffText = `+${formatMoney(diffCost)}`;
+                                                } else {
+                                                    // Shortage
+                                                    statusColor = 'text-red-700';
+                                                    statusBg = 'bg-red-50 border border-red-100';
+                                                    diffText = formatMoney(diffCost);
+                                                }
+                                            }
+
+                                            const displayLabel = act.label !== '-' ? act.label.replace('Meal Penalty', 'C7') : proj.label;
+
+                                            return (
+                                                <div key={key} className={`rounded p-2 text-[10px] grid grid-cols-12 gap-2 items-center ${statusBg}`}>
+                                                    {/* CODE NAME */}
+                                                    <div className={`col-span-4 font-bold truncate ${statusColor}`} title={displayLabel}>
+                                                        {displayLabel}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                                    
+                                                    {/* HOURS COMPARISON */}
+                                                    <div className="col-span-4 text-center flex justify-center items-center gap-1 text-slate-500">
+                                                        <span>{proj.hours.toFixed(1)}</span>
+                                                        <Icons.ArrowRight className="w-3 h-3 text-slate-300"/>
+                                                        <span className={act.hours !== proj.hours ? 'font-bold text-slate-700' : ''}>{act.hours.toFixed(1)}</span>
+                                                    </div>
+
+                                                    {/* DOLLAR DIFF */}
+                                                    <div className={`col-span-4 text-right font-mono font-bold ${statusColor}`}>
+                                                        {diffText}
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
-                                    
+
                                     {matchStatus === 'mismatch' && (
-                                        <div className="mb-2">
-                                            <div className="flex justify-between text-[10px] text-amber-600 font-medium bg-white/50 p-1 rounded mb-1">
-                                                <span>Diff: {diff > 0 ? '+' : ''}{formatMoney(diff)}</span>
-                                                <span>Hrs: {diffHours > 0 ? '+' : ''}{diffHours.toFixed(2)}h</span>
-                                            </div>
-                                            {hint && <div className="text-[10px] text-slate-500 italic px-1"><span className="font-bold">Hint:</span> {hint}</div>}
-                                        </div>
+                                        <div className="mt-3 text-[10px] text-slate-500 italic text-center border-t border-slate-200 pt-2"><span className="font-bold">Hint:</span> {hint}</div>
                                     )}
                                 </div>
                             )}
@@ -503,44 +608,30 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.3.1</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Latest</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.8</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Latest</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Corrected Holdover Logic:</strong> Holdover hours are now doubled for verification purposes, matching payroll logic.</li>
-                            <li><strong>Dynamic Pay Hrs Badge:</strong> Added dynamic 'Pay Hrs' badge to daily cards.</li>
+                             <li><strong>Summary Dashboard:</strong> Added a high-level "Pay Period Summary" at the top of the dashboard showing Total Projected, Actual, and Variance.</li>
+                             <li><strong>Visual Status:</strong> Color-coded variance indicators for instant "Good/Bad" recognition.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.7</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>Smart Hints:</strong> Added specific detection for "Incidental Time" (e.g., clocking in 7 minutes early) vs. missing Holdover premiums.</li>
+                             <li><strong>Clarity Update:</strong> Redesigned footer for instant readability. Replaced confusing lists with a simple "Projected vs Actual" grid.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.6.1</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>Unified Reconciliation:</strong> Completely redesigned the card footer to show a clean, single-list comparison grid.</li>
+                             <li><strong>Cognitive Load Reduction:</strong> Auto-groups similar codes (e.g., Base + Regular) and highlights only mismatches in red.</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.3</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Stability Refactor:</strong> Fixed scope issues causing 'Identifier already declared' errors by cleaning up component structure.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.2.2</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Math Breakdown:</strong> Added side-by-side comparison of Projected vs. Actual pay codes in card footer.</li>
-                             <li><strong>Rate Visibility:</strong> Hourly rates now displayed for every line item to help spot discrepancies.</li>
-                        </ul>
-                    </div>
-                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v5.7</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Restored Content:</strong> Full history and help guides restored.</li>
-                            <li><strong>Crash Fixes:</strong> Resolved blank screen issues on import.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v5.5</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Streamlined:</strong> Removed manual Audit tab.</li>
-                            <li><strong>Terminology:</strong> "Missed Meal (C7)".</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v5.1</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>Daily Cards:</strong> Shifted to day-based grouping to fix double-shift bugs.</li>
-                            <li><strong>Mando:</strong> Added 2x Mando toggle.</li>
+                            <li><strong>Stability Refactor:</strong> Fixed scope issues causing crashes on import.</li>
                         </ul>
                     </div>
                 </div>
@@ -567,7 +658,7 @@
              </div>
         );
 
-        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay }) => {
+        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay, setActiveTab }) => {
             const [expandedCards, setExpandedCards] = useState({});
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [showGuide, setShowGuide] = useState(true);
@@ -646,11 +737,19 @@
                     if (!t[i.date]) t[i.date] = { pay: 0, hours: 0 };
                     t[i.date].pay += i.total;
                     let h = i.hours;
-                    if (i.tags.some(tag => tag.includes('Mando') || tag.includes('Hold'))) h = h * 2;
+                    if (i.tags.some(tag => tag.includes('Mando'))) h = h * 2;
                     if (!i.isBonus || i.tags.includes('Sick/PTO')) t[i.date].hours += h;
                 });
                 return t;
             }, [calculatedData]);
+
+            // Calculate actual total from loaded report
+            const actualTotalPay = useMemo(() => {
+                if (Object.keys(payrollReport).length === 0) return null;
+                return Object.values(payrollReport).reduce((acc, day) => acc + day.totalPay, 0);
+            }, [payrollReport]);
+
+            const diffTotal = actualTotalPay !== null ? actualTotalPay - calculatedData.grandTotalPay : 0;
 
             const groupedData = useMemo(() => {
                 const getAnchor = (d) => {
@@ -686,19 +785,67 @@
                             <button onClick={() => setShowGuide(false)}><Icons.X className="w-3 h-3"/></button>
                         </div>
                     )}
-                    <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div><div className="text-xs text-slate-400 font-bold uppercase">Estimated Pay</div><div className="text-3xl font-bold text-indigo-600">{formatMoney(calculatedData.grandTotalPay)}</div></div>
-                        <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                            <div><label className="text-[10px] font-bold text-slate-400 uppercase block">Base Rate</label><input type="number" value={settings.baseRate} onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} className="w-16 bg-transparent font-bold text-slate-700 text-lg outline-none"/></div>
-                            <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 hover:bg-white rounded-full"><Icons.Settings className="w-5 h-5 text-slate-500" /></button>
+                    
+                    {/* Pay Period Summary Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                            {/* Metric 1: Projected */}
+                            <div className="text-center md:text-left">
+                                <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Projected Pay</div>
+                                <div className="text-3xl font-black text-slate-700">{formatMoney(calculatedData.grandTotalPay)}</div>
+                                <div className="text-xs text-slate-400">Based on {shifts.length} shifts</div>
+                            </div>
+
+                            {/* Metric 2: Actual (Conditional) */}
+                            {actualTotalPay !== null ? (
+                                 <div className="text-center md:text-left relative pl-6 md:border-l border-slate-100">
+                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Actual Pay</div>
+                                    <div className="text-3xl font-black text-indigo-600">{formatMoney(actualTotalPay)}</div>
+                                    <div className="text-xs text-slate-400">From Payroll Report</div>
+                                </div>
+                            ) : (
+                                <div className="text-center md:text-left relative pl-6 md:border-l border-slate-100 opacity-50">
+                                     <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Actual Pay</div>
+                                     <div className="text-xl font-bold text-slate-300">--.--</div>
+                                     <div className="text-xs text-indigo-400 font-bold cursor-pointer" onClick={() => setActiveTab('import')}>+ Import Report</div>
+                                </div>
+                            )}
+
+                            {/* Metric 3: Difference (Conditional) */}
+                            {actualTotalPay !== null && (
+                                <div className="text-center md:text-left relative pl-6 md:border-l border-slate-100">
+                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Discrepancy</div>
+                                    <div className={`text-3xl font-black ${Math.abs(diffTotal) < 1 ? 'text-emerald-500' : diffTotal < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                                        {diffTotal > 0 ? '+' : ''}{formatMoney(diffTotal)}
+                                    </div>
+                                    <div className={`text-xs font-bold ${Math.abs(diffTotal) < 1 ? 'text-emerald-600' : diffTotal < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        {Math.abs(diffTotal) < 1 ? 'Perfect Match' : diffTotal < 0 ? 'Underpaid' : 'Surplus'}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Settings / Rate */}
+                             <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200 ml-auto">
+                                <div>
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase block">Base Rate</label>
+                                    <div className="flex items-center">
+                                        <span className="text-slate-400 mr-1 text-sm">$</span>
+                                        <input type="number" value={settings.baseRate} onChange={(e) => setSettings({...settings, baseRate: parseFloat(e.target.value)})} className="w-14 bg-transparent font-bold text-slate-700 text-lg outline-none"/>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-indigo-500"><Icons.Settings className="w-5 h-5" /></button>
+                            </div>
                         </div>
+
+                        {/* Settings Panel */}
+                        {isSettingsOpen && (
+                            <div className="mt-4 pt-4 border-t border-slate-100 grid gap-4 md:grid-cols-2 text-xs animate-in slide-in-from-top-1">
+                                 <div><label className="font-bold text-slate-500 block mb-1">Pay Period Start</label><input type="date" value={settings.payPeriodAnchor} onChange={(e) => setSettings({...settings, payPeriodAnchor: e.target.value})} className="w-full p-2 border rounded"/></div>
+                                 <div className="col-span-2 pt-2 border-t mt-2"><button onClick={handleClearData} className="w-full py-2 bg-red-50 text-red-600 border border-red-200 rounded font-bold hover:bg-red-100 flex items-center justify-center gap-2">Clear All Data</button></div>
+                            </div>
+                        )}
                     </div>
-                    {isSettingsOpen && (
-                        <div className="bg-white p-4 rounded shadow border border-slate-200 grid gap-4 md:grid-cols-2 text-xs">
-                             <div><label className="font-bold text-slate-500 block mb-1">Pay Period Start</label><input type="date" value={settings.payPeriodAnchor} onChange={(e) => setSettings({...settings, payPeriodAnchor: e.target.value})} className="w-full p-2 border rounded"/></div>
-                             <div className="col-span-2 pt-2 border-t mt-2"><button onClick={handleClearData} className="w-full py-2 bg-red-50 text-red-600 border border-red-200 rounded font-bold hover:bg-red-100 flex items-center justify-center gap-2">Clear All Data</button></div>
-                        </div>
-                    )}
+
                     {groupedData.map(g => (
                         <div key={g.startDate} className="bg-white rounded shadow overflow-hidden">
                             <div className="bg-slate-800 text-white p-3 flex justify-between text-sm font-bold">
@@ -709,7 +856,7 @@
                                 {Object.values(g.weeks).sort((a,b)=>a.startDate-b.startDate).map(w => (
                                     <React.Fragment key={w.startDate}>
                                         {Object.values(w.days).sort((a,b)=>a.date.localeCompare(b.date)).map(dayGroup => (
-                                            <DailyCard key={dayGroup.date} dayGroup={dayGroup} settings={settings} onUpdate={updateShift} onRemove={removeDay} onAddShift={addShift} reportData={payrollReport[dayGroup.date]} dailyCalc={dailyTotals[dayGroup.date]} isExpanded={expandedCards[dayGroup.date]} onToggleExpand={() => setExpandedCards(p => ({...p, [dayGroup.date]: !p[dayGroup.date]}))} />
+                                            <DailyCard key={dayGroup.date} dayGroup={dayGroup} settings={settings} onUpdate={updateShift} onRemove={removeDay} onAddShift={addShift} reportData={payrollReport[dayGroup.date]} dailyCalc={dailyTotals[dayGroup.date]} isExpanded={expandedCards[dayGroup.date]} onToggleExpand={() => setExpandedCards(p => ({...p, [dayGroup.date]: !p[dayGroup.date]}))} setActiveTab={setActiveTab} />
                                         ))}
                                     </React.Fragment>
                                 ))}
@@ -723,9 +870,16 @@
         // --- MAIN ORCHESTRATOR ---
         function PayslipAuditor() {
             const [activeTab, setActiveTab] = useState('import'); 
-            const [shifts, setShifts] = useState(() => { try { return JSON.parse(localStorage.getItem('shifts')) || [] } catch { return [] } });
-            const [payrollReport, setPayrollReport] = useState(() => { try { return JSON.parse(localStorage.getItem('payrollReport')) || {} } catch { return {} } });
-            const [detectedCodes, setDetectedCodes] = useState(() => { try { return JSON.parse(localStorage.getItem('detectedCodes')) || [] } catch { return [] } });
+            // SAFE STORAGE: prevents crash if localstorage has garbage
+            const [shifts, setShifts] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('shifts')) || [] } catch { return [] }
+            });
+            const [payrollReport, setPayrollReport] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('payrollReport')) || {} } catch { return {} }
+            });
+            const [detectedCodes, setDetectedCodes] = useState(() => {
+                try { return JSON.parse(localStorage.getItem('detectedCodes')) || [] } catch { return [] }
+            });
             const [importMode, setImportMode] = useState('timecard');
             const [importText, setImportText] = useState('');
             const [settings, setSettings] = useState(() => { try { return JSON.parse(localStorage.getItem('settings')) || { baseRate: 40, maxStack: 3.0, otThreshold: 40, dtThreshold: 12, workWeekStartDay: 0, mealBonusHours: 1, holidayRate: 1.5, nightDiffRate: 3.0, payPeriodAnchor: new Date().toISOString().split('T')[0] } } catch { return {} } });
@@ -734,6 +888,10 @@
             useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
             useEffect(() => { localStorage.setItem('detectedCodes', JSON.stringify(detectedCodes)); }, [detectedCodes]);
             useEffect(() => { localStorage.setItem('settings', JSON.stringify(settings)); }, [settings]);
+
+            useEffect(() => {
+                // Initial data load safety check could go here if needed
+            }, []);
             
             const handleImport = () => {
                  if (importMode === 'timecard') {
@@ -806,6 +964,7 @@
                                     removePayPeriod={(s, e) => { if(confirm("Delete pay period?")) setShifts(prev => prev.filter(sh => { const t = new Date(sh.date+'T12:00:00').getTime(); return t < s || t > e; })); }}
                                     handleClearData={() => { if(confirm("Clear ALL data?")) { setShifts([]); setPayrollReport({}); localStorage.clear(); } }}
                                     removeDay={(id, dateStr) => { if (id) setShifts(shifts.filter(s => s.id !== id)); else if (dateStr && confirm(`Delete ${dateStr}?`)) setShifts(prev => prev.filter(s => s.date !== dateStr)); }}
+                                    setActiveTab={setActiveTab}
                                 />
                             }
                         </div>
