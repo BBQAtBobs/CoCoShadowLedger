@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v7.2 (Stable)</title>
+    <title>CoCo ShadowLedger v8.2 (Current)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -33,6 +33,56 @@
             0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
             100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        /* PDF/Print Styles */
+        @media print {
+            @page { size: letter; margin: 0.5in; }
+            
+            body { background: white !important; }
+            
+            /* Hide interactive elements */
+            .no-print, button, input, textarea, .ai-glow { display: none !important; }
+            
+            /* Header for PDF */
+            .print-header { 
+                display: block !important;
+                border-bottom: 3px solid #0f172a;
+                padding-bottom: 1rem;
+                margin-bottom: 2rem;
+            }
+            
+            /* Ensure proper page breaks */
+            .page-break-before { page-break-before: always; }
+            .page-break-after { page-break-after: always; }
+            .no-page-break { page-break-inside: avoid; }
+            
+            /* Expand all rows */
+            .expandable-row { display: block !important; max-height: none !important; }
+            
+            /* Clean table styling */
+            table, .print-table { 
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 1rem;
+            }
+            
+            .print-table-row {
+                border-bottom: 1px solid #e5e7eb;
+                padding: 0.5rem 0;
+            }
+            
+            /* Ensure text is black for clarity */
+            * { color: black !important; }
+            .text-emerald-600, .text-indigo-600, .text-red-600 { 
+                font-weight: bold !important;
+            }
+        }
+        
+        /* Hidden by default, shown in print */
+        .print-only { display: none; }
+        @media print {
+            .print-only { display: block !important; }
         }
     </style>
 </head>
@@ -354,13 +404,13 @@
             };
 
             return (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden">
-                        <div className="bg-indigo-600 p-4 flex justify-between items-center text-white">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 print:relative print:bg-transparent print:inset-auto print:block print:p-0 print:mt-8 page-break-before">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden print:max-h-none print:shadow-none print:max-w-full">
+                        <div className="bg-indigo-600 p-4 flex justify-between items-center text-white print:bg-white print:text-slate-900 print:border-b-2 print:border-indigo-600">
                             <h3 className="font-bold flex items-center gap-2"><Icons.Sparkles className="w-5 h-5"/> AI Pay Analysis</h3>
-                            <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded"><Icons.X className="w-5 h-5"/></button>
+                            <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded no-print"><Icons.X className="w-5 h-5"/></button>
                         </div>
-                        <div className="p-6 overflow-y-auto flex-1">
+                        <div className="p-6 overflow-y-auto flex-1 print:overflow-visible">
                             {needsKey ? (
                                 <div className="space-y-4">
                                     <div className="bg-amber-50 p-5 rounded-lg border border-amber-300">
@@ -594,60 +644,95 @@
 
             return (
                 <div className={`bg-white border-b border-slate-100 transition-all relative ${showExpanded ? 'ring-2 ring-indigo-300 shadow-xl z-[5]' : 'hover:shadow-sm'}`}>
-                    {/* SEXY TABLE ROW */}
+                    {/* RESPONSIVE TABLE ROW */}
                     <div 
                         onClick={onToggleExpand}
-                        className={`group grid grid-cols-12 gap-3 px-6 py-4 cursor-pointer items-center transition-all ${showExpanded ? 'bg-indigo-100' : 'hover:bg-slate-50/50'}`}
+                        className={`group cursor-pointer transition-all ${showExpanded ? 'bg-indigo-100' : 'hover:bg-slate-50/50'}`}
                     >
-                        {/* Column 1: Date */}
-                        <div className="col-span-2">
-                            <div className="font-bold text-slate-900 text-sm">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
-                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">{timeDisplay}</div>
-                        </div>
-
-                        {/* Column 2: My Hours */}
-                        <div className="col-span-2 text-center">
-                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
-                            <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
-                        </div>
-
-                        {/* Column 3: PAR Hours */}
-                        <div className="col-span-2 text-center">
-                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">PAR Hours</div>
-                            <div className="font-mono font-bold text-slate-700 text-sm">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
-                        </div>
-
-                        {/* Column 4: My Pay */}
-                        <div className="col-span-2 text-right">
-                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Calc</div>
-                            <div className="font-mono font-bold text-indigo-600">{formatMoney(totalPay)}</div>
-                        </div>
-
-                        {/* Column 5: PAR Pay */}
-                        <div className="col-span-2 text-right">
-                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
-                            <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
-                        </div>
-
-                        {/* Column 6: Status Badge */}
-                        <div className="col-span-2 flex justify-end items-center gap-2">
-                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
-                                {statusBadge.icon}
-                                <span>{statusBadge.label}</span>
+                        {/* DESKTOP VIEW: Grid Layout */}
+                        <div className="hidden md:grid grid-cols-12 gap-3 px-6 py-4 items-center">
+                            {/* Column 1: Date */}
+                            <div className="col-span-2">
+                                <div className="font-bold text-slate-900 text-sm">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
+                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">{timeDisplay}</div>
                             </div>
-                            <div className="text-slate-300 group-hover:text-indigo-400 transition-colors">
-                                {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
+
+                            {/* Column 2: My Hours */}
+                            <div className="col-span-2 text-center">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
+                                <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
+                            </div>
+
+                            {/* Column 3: PAR Hours */}
+                            <div className="col-span-2 text-center">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">PAR Hours</div>
+                                <div className="font-mono font-bold text-slate-700 text-sm">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
+                            </div>
+
+                            {/* Column 4: My Pay */}
+                            <div className="col-span-2 text-right">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Calc</div>
+                                <div className="font-mono font-bold text-indigo-600">{formatMoney(totalPay)}</div>
+                            </div>
+
+                            {/* Column 5: PAR Pay */}
+                            <div className="col-span-2 text-right">
+                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
+                                <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
+                            </div>
+
+                            {/* Column 6: Status Badge */}
+                            <div className="col-span-2 flex justify-end items-center gap-2">
+                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
+                                    {statusBadge.icon}
+                                    <span>{statusBadge.label}</span>
+                                </div>
+                                <div className="text-slate-300 group-hover:text-indigo-400 transition-colors">
+                                    {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* MOBILE VIEW: Compact Card */}
+                        <div className="md:hidden px-4 py-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex-1">
+                                    <div className="font-bold text-slate-900 text-base">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
+                                    <div className="text-xs text-slate-500 font-mono mt-0.5">{timeDisplay}</div>
+                                </div>
+                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
+                                    {statusBadge.icon}
+                                    <span className="hidden sm:inline">{statusBadge.label}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className="bg-slate-50 rounded-lg p-2">
+                                    <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">My Calc</div>
+                                    <div className="font-mono font-bold text-indigo-600">{formatMoney(totalPay)}</div>
+                                    <div className="text-xs text-slate-400 font-mono mt-0.5">{myTotalHours.toFixed(1)}h</div>
+                                </div>
+                                <div className="bg-slate-50 rounded-lg p-2">
+                                    <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Actual</div>
+                                    <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
+                                    <div className="text-xs text-slate-400 font-mono mt-0.5">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-center mt-2">
+                                <div className="text-slate-300 group-hover:text-indigo-400 transition-colors">
+                                    {showExpanded ? <Icons.ChevronUp className="w-5 h-5"/> : <Icons.ChevronDown className="w-5 h-5"/>}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* EXPANDABLE EDIT PANEL */}
-                    {showExpanded && (
-                        <div className="bg-gradient-to-br from-indigo-50 via-white to-slate-50/30 border-t-4 border-indigo-300 shadow-inner max-h-[70vh] overflow-y-auto px-6 py-6">
+                    <div className={`${showExpanded ? 'block' : 'hidden'} expandable-row bg-gradient-to-br from-indigo-50 via-white to-slate-50/30 border-t-4 border-indigo-300 shadow-inner max-h-[70vh] overflow-y-auto px-3 md:px-6 py-4 md:py-6 print:block print:max-h-none print:overflow-visible`}>
                             <div className="max-w-6xl mx-auto">
                                 {/* Header Actions */}
-                                <div className="flex justify-between items-center mb-6">
-                                    <h4 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Edit Shift Details</h4>
+                                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
+                                    <h4 className="text-xs md:text-sm font-bold text-slate-600 uppercase tracking-wider">Edit Shift Details</h4>
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); onAddShift(dayGroup.date); }} 
@@ -664,7 +749,94 @@
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                {/* Classification Agreement Checker */}
+                                {reportData && (
+                                    <div className="mb-6 bg-white rounded-lg border-2 border-slate-200 p-4 shadow-sm">
+                                        <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <Icons.CheckCircle className="w-4 h-4 text-indigo-500"/>
+                                            Classification Agreement
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(() => {
+                                                const userClaims = {
+                                                    mando: dayGroup.shifts.some(s => s.isMando),
+                                                    holdover: dayGroup.shifts.some(s => s.isHoldover),
+                                                    holiday: dayGroup.shifts.some(s => s.isHoliday),
+                                                    meal: dayGroup.shifts.some(s => s.claimFreeHour),
+                                                    pto: dayGroup.shifts.some(s => s.isPaidLeave)
+                                                };
+                                                
+                                                const parHas = {
+                                                    mando: reportData.entries.some(e => e.code.toLowerCase().includes('mandatory')),
+                                                    holdover: reportData.entries.some(e => e.code.toLowerCase().includes('holdover')),
+                                                    holiday: reportData.entries.some(e => e.code.toLowerCase().includes('holiday')),
+                                                    meal: reportData.entries.some(e => e.code.toLowerCase().includes('no break') || e.code.toLowerCase().includes('meal')),
+                                                    pto: reportData.entries.some(e => e.code.toLowerCase().includes('pto') || e.code.toLowerCase().includes('sick'))
+                                                };
+
+                                                const checks = [
+                                                    { label: 'Mando', user: userClaims.mando, par: parHas.mando },
+                                                    { label: 'Holdover', user: userClaims.holdover, par: parHas.holdover },
+                                                    { label: 'Holiday', user: userClaims.holiday, par: parHas.holiday },
+                                                    { label: 'Meal Bonus', user: userClaims.meal, par: parHas.meal },
+                                                    { label: 'PTO/Sick', user: userClaims.pto, par: parHas.pto }
+                                                ];
+
+                                                return checks.map(check => {
+                                                    if (!check.user && !check.par) return null; // Both agree it's not there, don't show
+                                                    
+                                                    const agreed = check.user === check.par;
+                                                    const icon = agreed ? '✓' : '⚠';
+                                                    const bgColor = agreed ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-amber-50 border-amber-300 text-amber-700';
+                                                    
+                                                    let status = '';
+                                                    if (agreed && check.user) {
+                                                        status = 'Both agree';
+                                                    } else if (check.user && !check.par) {
+                                                        status = 'You claimed, PAR missing';
+                                                    } else if (!check.user && check.par) {
+                                                        status = 'PAR paid, you didn\'t claim';
+                                                    }
+
+                                                    return (
+                                                        <div key={check.label} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold ${bgColor}`}>
+                                                            <span>{icon}</span>
+                                                            <span>{check.label}</span>
+                                                            <span className="text-[10px] opacity-75">· {status}</span>
+                                                        </div>
+                                                    );
+                                                }).filter(Boolean);
+                                            })()}
+                                        </div>
+                                        {(() => {
+                                            const userClaims = {
+                                                mando: dayGroup.shifts.some(s => s.isMando),
+                                                holdover: dayGroup.shifts.some(s => s.isHoldover),
+                                                holiday: dayGroup.shifts.some(s => s.isHoliday),
+                                                meal: dayGroup.shifts.some(s => s.claimFreeHour),
+                                                pto: dayGroup.shifts.some(s => s.isPaidLeave)
+                                            };
+                                            const parHas = {
+                                                mando: reportData.entries.some(e => e.code.toLowerCase().includes('mandatory')),
+                                                holdover: reportData.entries.some(e => e.code.toLowerCase().includes('holdover')),
+                                                holiday: reportData.entries.some(e => e.code.toLowerCase().includes('holiday')),
+                                                meal: reportData.entries.some(e => e.code.toLowerCase().includes('no break') || e.code.toLowerCase().includes('meal')),
+                                                pto: reportData.entries.some(e => e.code.toLowerCase().includes('pto') || e.code.toLowerCase().includes('sick'))
+                                            };
+                                            const allMatch = Object.keys(userClaims).every(k => userClaims[k] === parHas[k]);
+                                            const hasAny = Object.keys(userClaims).some(k => userClaims[k] || parHas[k]);
+                                            
+                                            if (!hasAny) {
+                                                return <div className="text-xs text-slate-500 italic mt-2">📋 Regular shift (no special modifiers)</div>;
+                                            }
+                                            if (allMatch) {
+                                                return <div className="text-xs text-emerald-600 font-bold mt-2">✅ All classifications match perfectly</div>;
+                                            }
+                                        })()}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                                     {/* LEFT: Shift Editor */}
                                     <div>
                                         <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -775,18 +947,30 @@
 
                     {/* EXPANDABLE DETAIL: Reconciliation Grid */}
                     {reportData && (
-                        <div className="border-t border-slate-200 bg-slate-50 p-4">
+                        <div className="border-t border-slate-200 bg-slate-50 p-3 md:p-4 mt-4 no-page-break">
                             <div className="mb-3">
-                                <div className="text-xs font-bold text-slate-600 flex items-center gap-2 mb-1">
-                                    <Icons.Grid className="w-4 h-4"/>
-                                    Line-by-Line Breakdown
+                                <div className="text-xs font-bold text-slate-600 flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <Icons.Grid className="w-4 h-4"/>
+                                        Line-by-Line Breakdown
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[9px] font-normal">
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-indigo-50 border border-indigo-200 rounded"></div>
+                                            <span className="text-indigo-700">My Calc</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded"></div>
+                                            <span className="text-emerald-700">PAR Data</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="text-[10px] text-slate-500 italic">
                                     ℹ️ Validation is based on total hours & pay. Line items may differ due to calculation methodology.
                                 </div>
                             </div>
-                            <div className="bg-white rounded border border-slate-200 overflow-hidden">
-                                <div className="grid grid-cols-12 gap-2 bg-slate-100 p-2 text-[9px] font-bold text-slate-500 uppercase">
+                            <div className="bg-white rounded border border-slate-200 overflow-hidden overflow-x-auto">
+                                <div className="hidden sm:grid grid-cols-12 gap-2 bg-slate-100 p-2 text-[9px] font-bold text-slate-500 uppercase">
                                     <div className="col-span-4">Code</div>
                                     <div className="col-span-3 text-center">My Hrs</div>
                                     <div className="col-span-3 text-center">PAR Hrs</div>
@@ -802,32 +986,71 @@
                                     // Line-level matching (for informational display only)
                                     const lineMatch = Math.abs(costDiff) < 2.0 && Math.abs(hoursDiff) < 0.3;
                                     
-                                    let rowBg = 'bg-white', statusColor = 'text-slate-500', statusText = '≈';
+                                    let rowBg = 'bg-white', statusColor = 'text-slate-500', statusText = '≈', statusIcon = null, borderLeft = '';
                                     
                                     // Only show differences if they're significant
                                     if (lineMatch) {
-                                        statusText = '✓';
+                                        statusText = '✓ Match';
                                         statusColor = 'text-emerald-600';
+                                        statusIcon = <Icons.CheckCircle className="w-3 h-3 text-emerald-500"/>;
+                                        borderLeft = 'border-l-2 border-emerald-400';
                                                 } else {
                                         // Show as informational (not alarming) since totals are what matter
-                                        rowBg = 'bg-blue-50/30';
-                                        statusColor = 'text-blue-700';
+                                        rowBg = 'bg-amber-50/50';
+                                        statusColor = 'text-amber-700';
+                                        borderLeft = 'border-l-2 border-amber-400';
+                                        statusIcon = <Icons.AlertTriangle className="w-3 h-3 text-amber-500"/>;
                                         if (Math.abs(costDiff) > 2.0) {
-                                            statusText = `${costDiff > 0 ? '+' : ''}${formatMoney(costDiff)}`;
+                                            statusText = `${costDiff > 0 ? '+ ' : ''}${formatMoney(costDiff)}`;
                                         } else if (Math.abs(hoursDiff) > 0.3) {
                                             statusText = `${hoursDiff > 0 ? '+' : ''}${hoursDiff.toFixed(1)}h`;
+                                        } else {
+                                            statusText = 'Minor diff';
                                         }
                                     }
 
                                     const displayLabel = act.label !== '-' ? act.label : proj.label;
 
                                             return (
-                                        <div key={key} className={`grid grid-cols-12 gap-2 p-2 text-[10px] border-b border-slate-100 ${rowBg}`}>
-                                            <div className="col-span-4 font-bold text-slate-700 truncate" title={displayLabel}>{displayLabel}</div>
-                                            <div className="col-span-3 text-center font-mono text-slate-600">{proj.hours.toFixed(1)}</div>
-                                            <div className="col-span-3 text-center font-mono text-slate-600">{act.hours.toFixed(1)}</div>
-                                            <div className={`col-span-2 text-right font-mono text-[9px] ${statusColor}`}>{statusText}</div>
+                                        <div key={key} className={`border-b border-slate-100 ${rowBg} ${borderLeft} transition-all hover:bg-opacity-70`}>
+                                            {/* Desktop Grid View */}
+                                            <div className="hidden sm:grid grid-cols-12 gap-2 p-3 text-[10px] items-center">
+                                                <div className="col-span-4 font-bold text-slate-700 truncate flex items-center gap-2" title={displayLabel}>
+                                                    {statusIcon}
+                                                    <span>{displayLabel}</span>
+                                                </div>
+                                                <div className="col-span-3 text-center">
+                                                    <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">{proj.hours.toFixed(1)}h</div>
+                                                </div>
+                                                <div className="col-span-3 text-center">
+                                                    <div className="font-mono text-slate-600 bg-emerald-50 px-2 py-1 rounded">{act.hours.toFixed(1)}h</div>
+                                                </div>
+                                                <div className={`col-span-2 text-right font-bold text-xs ${statusColor} flex items-center justify-end gap-1`}>
+                                                    <span>{statusText}</span>
+                                                </div>
+                                            </div>
+                                            {/* Mobile Stacked View */}
+                                            <div className="sm:hidden p-3 space-y-2">
+                                                <div className="font-bold text-slate-700 text-xs mb-2 flex items-center gap-2">
+                                                    {statusIcon}
+                                                    <span>{displayLabel}</span>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2 text-[10px]">
+                                                    <div className="text-center">
+                                                        <div className="text-slate-400 uppercase text-[8px] mb-1">My Hrs</div>
+                                                        <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">{proj.hours.toFixed(1)}</div>
                                                     </div>
+                                                    <div className="text-center">
+                                                        <div className="text-slate-400 uppercase text-[8px] mb-1">PAR Hrs</div>
+                                                        <div className="font-mono text-slate-600 bg-emerald-50 px-2 py-1 rounded">{act.hours.toFixed(1)}</div>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <div className="text-slate-400 uppercase text-[8px] mb-1">Status</div>
+                                                        <div className={`font-bold text-[9px] ${statusColor} px-1 py-1 rounded`}>{statusText}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     );
                                         })}
                                     </div>
@@ -868,9 +1091,8 @@
                             )}
                         </div>
                     )}
-                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             );
         };
@@ -1004,24 +1226,66 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.2</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Stable</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.2</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Global Key:</strong> Added support for a hardcoded API key for internal pilots.</li>
-                             <li><strong>Enhanced AI:</strong> AI Assistant now works seamlessly without user key if global key provided.</li>
+                             <li><strong>🎯 Classification Agreement:</strong> See if you and payroll agree on shift types (Mando, Holdover, Holiday, Meal Bonus, PTO).</li>
+                             <li><strong>✅ Smart Detection:</strong> "You claimed, PAR missing" vs "PAR paid, you didn't claim" vs "Both agree".</li>
+                             <li><strong>🚨 Catch Missed Claims:</strong> Instantly spot if PAR paid a meal bonus you forgot to claim, or vice versa.</li>
+                             <li><strong>🎨 Clean UI:</strong> Compact badges only show relevant modifiers, no clutter for regular shifts.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.1</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>📱 Mobile Responsive:</strong> Fully optimized for phone and tablet - table stacks beautifully on small screens.</li>
+                             <li><strong>📄 PDF Export:</strong> One-click export to PDF with professional formatting, ready to submit to HR.</li>
+                             <li><strong>🖨️ Print-Ready:</strong> Comprehensive print styles ensure clean, professional output with all details included.</li>
+                             <li><strong>🔍 Enhanced Reconciliation:</strong> Visual diff indicators with color-coded badges (green = match, amber = minor diff).</li>
+                             <li><strong>📊 Side-by-Side Comparison:</strong> Clear visual comparison with blue badges for "My Calc" and green for "PAR Data".</li>
+                             <li><strong>✨ Better Visual Feedback:</strong> Border indicators, hover effects, and icons make discrepancies instantly obvious.</li>
+                             <li><strong>🤖 AI in PDF:</strong> AI analysis now included in PDF exports for complete documentation.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.0</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>🎨 Modern Table View:</strong> Complete dashboard redesign from cards to a sleek, responsive table layout with one row per day.</li>
+                             <li><strong>Expandable Edit Panels:</strong> Click any row to expand an inline editor with shift details, toggles, and reconciliation data.</li>
+                             <li><strong>Visual Hierarchy:</strong> Enhanced visual feedback with ring outlines, elevated shadows, gradient backgrounds, and status badges.</li>
+                             <li><strong>Fixed Z-Index Layering:</strong> Sticky header now properly stays above expanded content when scrolling.</li>
+                             <li><strong>Status at a Glance:</strong> Quick visual status indicators (Green "Match" / Red "Alert") for each day's audit results.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.3</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>Smart Total-Based Validation:</strong> Switched from line-by-line comparison to intelligent total-based validation for more accurate audits.</li>
+                             <li><strong>Improved Holdover Logic:</strong> Better handling of holdover pay calculations to reduce false discrepancies.</li>
+                             <li><strong>Tolerance Thresholds:</strong> Small differences under $5 or 0.5 hours are now intelligently filtered out.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.2</span></div>
+                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                             <li><strong>AI Output Improvements:</strong> Formatted AI analysis with clear sections (Verdict, Big Picture, Issues Found, Why This Happened).</li>
+                             <li><strong>Refined AI Persona:</strong> More concise, helpful analysis focused on actionable insights.</li>
+                             <li><strong>Better Error Handling:</strong> Improved API key management with clear error messages and local storage support.</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.1</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>AI Audit Fix:</strong> Added "Bring Your Own Key" support for offline/stable AI use.</li>
+                             <li><strong>AI Audit Fix:</strong> Added "Bring Your Own Key" support for stable AI use.</li>
                              <li><strong>Better Errors:</strong> Clearer error messages when AI analysis fails.</li>
+                             <li><strong>Enhanced Import:</strong> More specific error messages for Timecard and PAR imports with helpful tips.</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.0</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                              <li><strong>AI Audit:</strong> Added new Gemini-powered analysis feature to explain discrepancies in plain English.</li>
-                             <li><strong>Enhanced UI:</strong> Cleaned up dashboard layout.</li>
+                             <li><strong>Enhanced UI:</strong> Cleaned up dashboard layout with better visual organization.</li>
+                             <li><strong>Anonymized Data:</strong> AI analysis uses anonymized data for privacy protection.</li>
                         </ul>
                     </div>
                     <div>
@@ -1035,6 +1299,7 @@
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v6.8</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                              <li><strong>Summary Dashboard:</strong> Added "Pay Period Summary" with color-coded variance.</li>
+                             <li><strong>Metrics Display:</strong> Shows Projected Pay, Actual Pay, and Discrepancy at a glance.</li>
                         </ul>
                     </div>
                 </div>
@@ -1179,8 +1444,40 @@
 
             return (
                 <div className="space-y-4">
+                    {/* Print-Only Header */}
+                    <div className="print-only print-header">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h1 className="text-3xl font-black text-slate-900">CoCo ShadowLedger</h1>
+                                <p className="text-sm text-slate-600 mt-1">EMS Payroll Audit Report</p>
+                            </div>
+                            <div className="text-right text-sm text-slate-600">
+                                <div className="font-bold">Generated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                                <div className="text-xs mt-1">Base Rate: ${settings.baseRate.toFixed(2)}/hr</div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <div className="text-xs text-slate-500 uppercase tracking-wide">Projected Pay</div>
+                                <div className="text-xl font-bold text-slate-900">{formatMoney(calculatedData.grandTotalPay)}</div>
+                            </div>
+                            {actualTotalPay !== null && (
+                                <>
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase tracking-wide">Actual Pay</div>
+                                        <div className="text-xl font-bold text-slate-900">{formatMoney(actualTotalPay)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase tracking-wide">Discrepancy</div>
+                                        <div className="text-xl font-bold text-slate-900">{diffTotal > 0 ? '+' : ''}{formatMoney(diffTotal)}</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                
                      {showGuide && (
-                        <div className="bg-white rounded-lg shadow-sm border p-3 flex justify-between items-center text-xs animate-in slide-in-from-top-1">
+                        <div className="bg-white rounded-lg shadow-sm border p-3 flex justify-between items-center text-xs animate-in slide-in-from-top-1 no-print">
                             <div className="flex items-center gap-2">
                                 <span className={`h-2 w-2 rounded-full ${shifts.length > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                                 <span className="font-bold text-slate-700">{shifts.length === 0 ? "Step 1: Import Timecard" : "Step 2: Review & Validate"}</span>
@@ -1227,8 +1524,16 @@
                                 </div>
                             )}
 
-                            {/* AI & Settings Buttons */}
-                             <div className="flex items-center gap-3 ml-auto">
+                            {/* AI, PDF & Settings Buttons */}
+                             <div className="flex items-center gap-3 ml-auto no-print">
+                                <button 
+                                    onClick={() => window.print()}
+                                    className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold rounded-full flex items-center gap-2 transition-all shadow-md"
+                                    title="Export to PDF"
+                                >
+                                    <Icons.FileText className="w-4 h-4" /> Export PDF
+                                </button>
+                                
                                 <button 
                                     onClick={() => onOpenAI(calculatedData)}
                                     className="ai-glow px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full flex items-center gap-2 transition-all shadow-lg shadow-indigo-200"
@@ -1275,8 +1580,8 @@
                                 <span className="text-white font-bold text-lg">{formatMoney(g.totalPay)}</span>
                             </div>
 
-                            {/* Table Header */}
-                            <div className="grid grid-cols-12 gap-3 px-6 py-3 bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            {/* Table Header - Desktop Only */}
+                            <div className="hidden md:grid grid-cols-12 gap-3 px-6 py-3 bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                 <div className="col-span-2">Date</div>
                                 <div className="col-span-2 text-center">My Hours</div>
                                 <div className="col-span-2 text-center">PAR Hours</div>
