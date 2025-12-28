@@ -593,11 +593,11 @@
             }
 
             return (
-                <div className={`bg-white border-b border-slate-100 transition-all ${showExpanded ? 'ring-2 ring-indigo-300 shadow-xl z-10' : 'hover:shadow-sm'}`}>
+                <div className="bg-white border-b border-slate-100 hover:shadow-sm transition-all">
                     {/* SEXY TABLE ROW */}
                     <div 
                         onClick={onToggleExpand}
-                        className={`group grid grid-cols-12 gap-3 px-6 py-4 cursor-pointer items-center transition-all ${showExpanded ? 'bg-indigo-100' : 'hover:bg-slate-50/50'}`}
+                        className={`group grid grid-cols-12 gap-3 px-6 py-4 cursor-pointer items-center ${showExpanded ? 'bg-gradient-to-r from-indigo-50/30 to-transparent' : 'hover:bg-slate-50/50'}`}
                     >
                         {/* Column 1: Date */}
                         <div className="col-span-2">
@@ -609,7 +609,7 @@
                         <div className="col-span-2 text-center">
                             <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
                             <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
-                    </div>
+                        </div>
 
                         {/* Column 3: PAR Hours */}
                         <div className="col-span-2 text-center">
@@ -643,7 +643,7 @@
 
                     {/* EXPANDABLE EDIT PANEL */}
                     {showExpanded && (
-                        <div className="bg-gradient-to-br from-indigo-50 via-white to-slate-50/30 border-t-2 border-indigo-400 shadow-inner max-h-[65vh] overflow-y-auto px-6 py-6">
+                        <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50/30 border-t border-slate-100 px-6 py-6">
                             <div className="max-w-6xl mx-auto">
                                 {/* Header Actions */}
                                 <div className="flex justify-between items-center mb-6">
@@ -845,8 +845,8 @@
                                             <span className={`ml-2 font-bold ${Math.abs(diffHours) < 0.5 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                 {Math.abs(diffHours) < 0.5 ? '✓' : `${diffHours > 0 ? '+' : ''}${diffHours.toFixed(2)}h`}
                                             </span>
-                                </div>
-                        </div>
+                                        </div>
+                                    </div>
                                     <div>
                                         <div className="text-slate-500 text-[10px] mb-1">Total Pay</div>
                                         <div className="flex justify-between items-center">
@@ -867,6 +867,8 @@
                                 </div>
                             )}
                         </div>
+                    )}
+                            </div>
                         </div>
                     )}
                 </div>
