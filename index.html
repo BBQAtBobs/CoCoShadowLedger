@@ -669,6 +669,192 @@
         // ═══════════════════════════════════════════════════════════════════
         
         /**
+         * ReconciliationGrid Sub-Component
+         * Displays line-by-line breakdown comparing user's calculated hours vs PAR data
+         * @component
+         */
+        const ReconciliationGrid = ({ projectedMap, actualMap, allKeys, matchStatus }) => {
+            return (
+                <div className="bg-white rounded border border-slate-200 overflow-hidden overflow-x-auto">
+                    {/* Desktop Header */}
+                    <div className="hidden sm:grid grid-cols-12 gap-2 bg-slate-100 p-2 text-[9px] font-bold text-slate-500 uppercase">
+                        <div className="col-span-4">Code</div>
+                        <div className="col-span-3 text-center">My Hrs</div>
+                        <div className="col-span-3 text-center">PAR Hrs</div>
+                        <div className="col-span-2 text-right">Status</div>
+                    </div>
+                    
+                    {/* Line Items */}
+                    {Array.from(allKeys).sort().map(key => {
+                        const proj = projectedMap[key] || { hours: 0, actualHours: 0, total: 0, label: key, rates: new Set(), isDoubled: false };
+                        const act = actualMap[key] || { hours: 0, total: 0, label: '-', rates: new Set() };
+                        
+                        const myDisplayHours = proj.isDoubled ? proj.actualHours : proj.hours;
+                        const hoursDiff = act.hours - myDisplayHours;
+                        const costDiff = act.total - proj.total;
+                        
+                        const lineMatch = Math.abs(costDiff) < 2.0 && Math.abs(hoursDiff) < 0.3;
+                        
+                        let rowBg = 'bg-white', statusColor = 'text-slate-500', statusText = '≈', statusIcon = null, borderLeft = '';
+                        
+                        if (lineMatch) {
+                            statusText = '✓ Match';
+                            statusColor = 'text-emerald-600';
+                            statusIcon = <Icons.CheckCircle className="w-3 h-3 text-emerald-500"/>;
+                            borderLeft = 'border-l-2 border-emerald-400';
+                        } else {
+                            if (matchStatus === 'match') {
+                                rowBg = 'bg-blue-50/30';
+                                statusColor = 'text-blue-700';
+                                borderLeft = 'border-l-2 border-blue-300';
+                                statusIcon = <Icons.Info className="w-3 h-3 text-blue-500"/>;
+                            } else {
+                                rowBg = 'bg-amber-50/50';
+                                statusColor = 'text-amber-700';
+                                borderLeft = 'border-l-2 border-amber-400';
+                                statusIcon = <Icons.AlertTriangle className="w-3 h-3 text-amber-500"/>;
+                            }
+                            
+                            if (Math.abs(costDiff) > 2.0) {
+                                statusText = `${costDiff > 0 ? '+ ' : ''}${formatMoney(costDiff)}`;
+                            } else if (Math.abs(hoursDiff) > 0.3) {
+                                statusText = `${hoursDiff > 0 ? '+' : ''}${hoursDiff.toFixed(1)}h`;
+                            } else {
+                                statusText = 'Minor diff';
+                            }
+                        }
+
+                        const displayLabel = act.label !== '-' ? act.label : proj.label;
+
+                        return (
+                            <div key={key} className={`border-b border-slate-100 ${rowBg} ${borderLeft} transition-all hover:bg-opacity-70`}>
+                                {/* Desktop Grid View */}
+                                <div className="hidden sm:grid grid-cols-12 gap-2 p-3 text-[10px] items-center">
+                                    <div className="col-span-4 font-bold text-slate-700 truncate flex items-center gap-2" title={displayLabel}>
+                                        {statusIcon}
+                                        <span>{displayLabel}</span>
+                                    </div>
+                                    <div className="col-span-3 text-center">
+                                        <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">
+                                            {proj.isDoubled ? proj.actualHours.toFixed(1) : proj.hours.toFixed(1)}h
+                                            {proj.isDoubled && (
+                                                <span className="text-[8px] text-indigo-500 ml-1" title={`${proj.actualHours.toFixed(1)}h worked → ${proj.hours.toFixed(1)}h payable (doubled)`}>
+                                                    ×2
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="col-span-3 text-center">
+                                        <div className="font-mono text-slate-600 bg-emerald-50 px-2 py-1 rounded">{act.hours.toFixed(1)}h</div>
+                                    </div>
+                                    <div className={`col-span-2 text-right font-bold text-xs ${statusColor} flex items-center justify-end gap-1`}>
+                                        <span>{statusText}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Mobile Stacked View */}
+                                <div className="sm:hidden p-3 space-y-2">
+                                    <div className="font-bold text-slate-700 text-xs mb-2 flex items-center gap-2">
+                                        {statusIcon}
+                                        <span>{displayLabel}</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 text-[10px]">
+                                        <div className="text-center">
+                                            <div className="text-slate-400 uppercase text-[8px] mb-1">My Hrs</div>
+                                            <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">
+                                                {proj.isDoubled ? proj.actualHours.toFixed(1) : proj.hours.toFixed(1)}
+                                                {proj.isDoubled && <span className="text-[8px] text-indigo-500 ml-0.5">×2</span>}
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-slate-400 uppercase text-[8px] mb-1">PAR Hrs</div>
+                                            <div className="font-mono text-slate-600 bg-emerald-50 px-2 py-1 rounded">{act.hours.toFixed(1)}</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-slate-400 uppercase text-[8px] mb-1">Status</div>
+                                            <div className={`font-bold text-[9px] ${statusColor} px-1 py-1 rounded`}>{statusText}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        /**
+         * ValidationSummary Sub-Component  
+         * Displays total hours and pay comparison - the primary validation that actually matters
+         * @component
+         */
+        const ValidationSummary = ({ matchStatus, myTotalHours, reportData, totalPay, diffHours, diff, hint }) => {
+            return (
+                <>
+                    <div className={`mt-3 rounded border-2 p-3 ${matchStatus === 'match' ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="text-[10px] font-bold text-slate-600 uppercase">Validation Summary</div>
+                            <div className="text-[9px] text-slate-500 font-normal italic">(What Actually Matters)</div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                            {/* Total Hours */}
+                            <div>
+                                <div className="text-slate-500 text-[10px] mb-1">Total Hours</div>
+                                <div className="flex items-center gap-1 mb-1">
+                                    <div className="flex-1 text-center">
+                                        <div className="text-[8px] text-indigo-600 font-bold uppercase">My Calc</div>
+                                    </div>
+                                    <div className="w-4"></div>
+                                    <div className="flex-1 text-center">
+                                        <div className="text-[8px] text-emerald-600 font-bold uppercase">PAR Actual</div>
+                                    </div>
+                                    <div className="w-12"></div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-mono text-slate-700 flex-1 text-center bg-indigo-50 py-1 rounded">{myTotalHours.toFixed(2)}h</span>
+                                    <Icons.ArrowRight className="w-3 h-3 text-slate-400 mx-1"/>
+                                    <span className="font-mono text-slate-700 flex-1 text-center bg-emerald-50 py-1 rounded">{reportData.totalHours.toFixed(2)}h</span>
+                                    <span className={`ml-2 font-bold text-xs w-12 text-right ${Math.abs(diffHours) < HOURS_TOLERANCE ? 'text-emerald-600' : 'text-red-600'}`}>
+                                        {Math.abs(diffHours) < HOURS_TOLERANCE ? '✓' : `${diffHours > 0 ? '+' : ''}${diffHours.toFixed(2)}h`}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            {/* Total Pay */}
+                            <div>
+                                <div className="text-slate-500 text-[10px] mb-1">Total Pay</div>
+                                <div className="flex items-center gap-1 mb-1">
+                                    <div className="flex-1 text-center">
+                                        <div className="text-[8px] text-indigo-600 font-bold uppercase">My Calc</div>
+                                    </div>
+                                    <div className="w-4"></div>
+                                    <div className="flex-1 text-center">
+                                        <div className="text-[8px] text-emerald-600 font-bold uppercase">PAR Actual</div>
+                                    </div>
+                                    <div className="w-12"></div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-mono text-slate-700 flex-1 text-center bg-indigo-50 py-1 rounded">{formatMoney(totalPay)}</span>
+                                    <Icons.ArrowRight className="w-3 h-3 text-slate-400 mx-1"/>
+                                    <span className="font-mono text-slate-700 flex-1 text-center bg-emerald-50 py-1 rounded">{formatMoney(reportData.totalPay)}</span>
+                                    <span className={`ml-2 font-bold text-xs w-12 text-right ${Math.abs(diff) < PAY_TOLERANCE ? 'text-emerald-600' : 'text-red-600'}`}>
+                                        {Math.abs(diff) < PAY_TOLERANCE ? '✓' : `${diff > 0 ? '+' : ''}${formatMoney(diff)}`}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {hint && (
+                        <div className="mt-3 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+                            <span className="font-bold">💡 Hint:</span> {hint}
+                        </div>
+                    )}
+                </>
+            );
+        };
+        
+        /**
          * Main component displaying a single day's shift data with reconciliation
          * Shows expandable comparison between user's calculated hours/pay vs PAR actual
          * @component
@@ -786,19 +972,19 @@
                             <div className="col-span-2 text-right">
                                 <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
                                 <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
-                            </div>
+                                            </div>
 
                             {/* Column 6: Status Badge */}
                             <div className="col-span-2 flex justify-end items-center gap-2">
                                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
                                     {statusBadge.icon}
                                     <span>{statusBadge.label}</span>
-                                </div>
+                                                </div>
                                 <div className="text-slate-300 group-hover:text-indigo-400 transition-colors">
                                     {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
-                                </div>
-                            </div>
-                        </div>
+                                            </div>
+                                    </div>
+                                    </div>
 
                         {/* MOBILE VIEW: Compact Card */}
                         <div className="md:hidden px-4 py-3">
@@ -810,8 +996,8 @@
                                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
                                     {statusBadge.icon}
                                     <span className="hidden sm:inline">{statusBadge.label}</span>
-                                </div>
-                            </div>
+                    </div>
+                    </div>
                             
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div className="bg-slate-50 rounded-lg p-2">
@@ -846,7 +1032,7 @@
                                             className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
                                         >
                                             <Icons.Plus className="w-3.5 h-3.5"/> Add Shift
-                                        </button>
+                            </button>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); if(confirm('Delete this day?')) onRemove(null, dayGroup.date); }} 
                                             className="px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-200 flex items-center gap-1.5 transition-colors"
@@ -854,8 +1040,8 @@
                                             <Icons.Trash2 className="w-3.5 h-3.5"/> Delete Day
                                         </button>
                                     </div>
-                                </div>
-
+                                        </div>
+                                        
                                 {/* Classification Agreement Checker */}
                                 {reportData && (
                                     <div className="mb-6 bg-white rounded-lg border-2 border-slate-200 p-4 shadow-sm">
@@ -957,7 +1143,7 @@
                              const crossesMidnight = endD.getDate() > startD.getDate();
                              const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
 
-                             return (
+                                            return (
                                         <div key={shift.id} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative group">
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); onRemove(shift.id); }} 
@@ -976,7 +1162,7 @@
                                                         className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                                     />
                                                     <span className="text-slate-400 text-xs font-medium">hours</span>
-                                            </div>
+                                                    </div>
                                         ) : (
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <input 
@@ -996,7 +1182,7 @@
                                                         {crossesMidnight && <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">+1</span>}
                                                 </div>
                                                     <span className="font-mono text-xs text-slate-500 font-medium min-w-[3rem] text-right">{estHours.toFixed(2)}h</span>
-                                            </div>
+                                    </div>
                                         )}
                                             
                                             <div className="flex flex-wrap gap-2">
@@ -1008,8 +1194,8 @@
                                                         <button onClick={(e) => { e.stopPropagation(); onUpdate(shift.id, 'isHoldover', !shift.isHoldover); }} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${shift.isHoldover ? 'bg-orange-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>HOLD</button>
                                                         <button onClick={(e) => { e.stopPropagation(); onUpdate(shift.id, 'isMando', !shift.isMando); }} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${shift.isMando ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>MANDO</button>
                                             </>
-                                        )}
-                                    </div>
+                                    )}
+                                </div>
                                 </div>
                              );
                         })}
@@ -1035,8 +1221,8 @@
                                         <span className="font-bold text-sm text-slate-700">Actual Total</span>
                                         <span className="font-bold text-lg text-emerald-600">{formatMoney(reportData.totalPay)}</span>
                                     </div>
-                                </div>
-                            ) : (
+                        </div>
+                    ) : (
                                 <div className="bg-white rounded-lg p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center min-h-[200px]">
                                     <Icons.Clipboard className="w-10 h-10 text-slate-300 mb-3"/>
                                     <p className="text-sm text-slate-500 font-medium mb-1">No PAR Data</p>
@@ -1046,9 +1232,9 @@
                                         className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-colors"
                                     >
                                         Import Report
-                            </button>
-                                </div>
-                            )}
+                             </button>
+                         </div>
+                    )}
                         </div>
                                         </div>
                                         
@@ -1090,171 +1276,22 @@
                                     </div>
                                 )}
                             </div>
-                            <div className="bg-white rounded border border-slate-200 overflow-hidden overflow-x-auto">
-                                <div className="hidden sm:grid grid-cols-12 gap-2 bg-slate-100 p-2 text-[9px] font-bold text-slate-500 uppercase">
-                                    <div className="col-span-4">Code</div>
-                                    <div className="col-span-3 text-center">My Hrs</div>
-                                    <div className="col-span-3 text-center">PAR Hrs</div>
-                                    <div className="col-span-2 text-right">Status</div>
-                                </div>
-                                        {Array.from(allKeys).sort().map(key => {
-                                            const proj = projectedMap[key] || { hours: 0, actualHours: 0, total: 0, label: key, rates: new Set(), isDoubled: false };
-                                            const act = actualMap[key] || { hours: 0, total: 0, label: '-', rates: new Set() };
-                                            
-                                    // Compare actual hours to actual hours (PAR shows actual, not payable)
-                                    const myDisplayHours = proj.isDoubled ? proj.actualHours : proj.hours;
-                                    const hoursDiff = act.hours - myDisplayHours;
-                                    const costDiff = act.total - proj.total;
-                                    
-                                    // Line-level matching (for informational display only)
-                                    const lineMatch = Math.abs(costDiff) < 2.0 && Math.abs(hoursDiff) < 0.3;
-                                    
-                                    let rowBg = 'bg-white', statusColor = 'text-slate-500', statusText = '≈', statusIcon = null, borderLeft = '';
-                                    
-                                    // Only show differences if they're significant
-                                    if (lineMatch) {
-                                        statusText = '✓ Match';
-                                        statusColor = 'text-emerald-600';
-                                        statusIcon = <Icons.CheckCircle className="w-3 h-3 text-emerald-500"/>;
-                                        borderLeft = 'border-l-2 border-emerald-400';
-                                    } else {
-                                        // Different styling based on whether TOTALS match
-                                        if (matchStatus === 'match') {
-                                            // Totals match, so line differences are just informational
-                                            rowBg = 'bg-blue-50/30';
-                                            statusColor = 'text-blue-700';
-                                            borderLeft = 'border-l-2 border-blue-300';
-                                            statusIcon = <Icons.Info className="w-3 h-3 text-blue-500"/>;
-                                        } else {
-                                            // Totals don't match, so line differences might be the problem
-                                            rowBg = 'bg-amber-50/50';
-                                            statusColor = 'text-amber-700';
-                                            borderLeft = 'border-l-2 border-amber-400';
-                                            statusIcon = <Icons.AlertTriangle className="w-3 h-3 text-amber-500"/>;
-                                        }
-                                        
-                                        if (Math.abs(costDiff) > 2.0) {
-                                            statusText = `${costDiff > 0 ? '+ ' : ''}${formatMoney(costDiff)}`;
-                                        } else if (Math.abs(hoursDiff) > 0.3) {
-                                            statusText = `${hoursDiff > 0 ? '+' : ''}${hoursDiff.toFixed(1)}h`;
-                                                } else {
-                                            statusText = 'Minor diff';
-                                                }
-                                            }
+                            <ReconciliationGrid 
+                                projectedMap={projectedMap} 
+                                actualMap={actualMap} 
+                                allKeys={allKeys} 
+                                matchStatus={matchStatus} 
+                            />
 
-                                    const displayLabel = act.label !== '-' ? act.label : proj.label;
-
-                                            return (
-                                        <div key={key} className={`border-b border-slate-100 ${rowBg} ${borderLeft} transition-all hover:bg-opacity-70`}>
-                                            {/* Desktop Grid View */}
-                                            <div className="hidden sm:grid grid-cols-12 gap-2 p-3 text-[10px] items-center">
-                                                <div className="col-span-4 font-bold text-slate-700 truncate flex items-center gap-2" title={displayLabel}>
-                                                    {statusIcon}
-                                                    <span>{displayLabel}</span>
-                                                    </div>
-                                                <div className="col-span-3 text-center">
-                                                    <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">
-                                                        {proj.isDoubled ? proj.actualHours.toFixed(1) : proj.hours.toFixed(1)}h
-                                                        {proj.isDoubled && (
-                                                            <span className="text-[8px] text-indigo-500 ml-1" title={`${proj.actualHours.toFixed(1)}h worked → ${proj.hours.toFixed(1)}h payable (doubled)`}>
-                                                                ×2
-                                                            </span>
-                                                        )}
-                                                </div>
-                                                </div>
-                                                <div className="col-span-3 text-center">
-                                                    <div className="font-mono text-slate-600 bg-emerald-50 px-2 py-1 rounded">{act.hours.toFixed(1)}h</div>
-                                                </div>
-                                                <div className={`col-span-2 text-right font-bold text-xs ${statusColor} flex items-center justify-end gap-1`}>
-                                                    <span>{statusText}</span>
-                                                </div>
-                                            </div>
-                                            {/* Mobile Stacked View */}
-                                            <div className="sm:hidden p-3 space-y-2">
-                                                <div className="font-bold text-slate-700 text-xs mb-2 flex items-center gap-2">
-                                                    {statusIcon}
-                                                    <span>{displayLabel}</span>
-                                                </div>
-                                                <div className="grid grid-cols-3 gap-2 text-[10px]">
-                                                    <div className="text-center">
-                                                        <div className="text-slate-400 uppercase text-[8px] mb-1">My Hrs</div>
-                                                        <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">
-                                                            {proj.isDoubled ? proj.actualHours.toFixed(1) : proj.hours.toFixed(1)}
-                                                            {proj.isDoubled && <span className="text-[8px] text-indigo-500 ml-0.5">×2</span>}
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <div className="text-slate-400 uppercase text-[8px] mb-1">PAR Hrs</div>
-                                                        <div className="font-mono text-slate-600 bg-emerald-50 px-2 py-1 rounded">{act.hours.toFixed(1)}</div>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <div className="text-slate-400 uppercase text-[8px] mb-1">Status</div>
-                                                        <div className={`font-bold text-[9px] ${statusColor} px-1 py-1 rounded`}>{statusText}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                        })}
-                                    </div>
-
-                            {/* Totals Summary - Primary Validation */}
-                            <div className={`mt-3 rounded border-2 p-3 ${matchStatus === 'match' ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'}`}>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="text-[10px] font-bold text-slate-600 uppercase">Validation Summary</div>
-                                    <div className="text-[9px] text-slate-500 font-normal italic">(What Actually Matters)</div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                    <div>
-                                        <div className="text-slate-500 text-[10px] mb-1">Total Hours</div>
-                                        <div className="flex items-center gap-1 mb-1">
-                                            <div className="flex-1 text-center">
-                                                <div className="text-[8px] text-indigo-600 font-bold uppercase">My Calc</div>
-                                            </div>
-                                            <div className="w-4"></div>
-                                            <div className="flex-1 text-center">
-                                                <div className="text-[8px] text-emerald-600 font-bold uppercase">PAR Actual</div>
-                                            </div>
-                                            <div className="w-12"></div>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-mono text-slate-700 flex-1 text-center bg-indigo-50 py-1 rounded">{myTotalHours.toFixed(2)}h</span>
-                                            <Icons.ArrowRight className="w-3 h-3 text-slate-400 mx-1"/>
-                                            <span className="font-mono text-slate-700 flex-1 text-center bg-emerald-50 py-1 rounded">{reportData.totalHours.toFixed(2)}h</span>
-                                            <span className={`ml-2 font-bold text-xs w-12 text-right ${Math.abs(diffHours) < 0.5 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                {Math.abs(diffHours) < 0.5 ? '✓' : `${diffHours > 0 ? '+' : ''}${diffHours.toFixed(2)}h`}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="text-slate-500 text-[10px] mb-1">Total Pay</div>
-                                        <div className="flex items-center gap-1 mb-1">
-                                            <div className="flex-1 text-center">
-                                                <div className="text-[8px] text-indigo-600 font-bold uppercase">My Calc</div>
-                                            </div>
-                                            <div className="w-4"></div>
-                                            <div className="flex-1 text-center">
-                                                <div className="text-[8px] text-emerald-600 font-bold uppercase">PAR Actual</div>
-                                            </div>
-                                            <div className="w-12"></div>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-mono text-slate-700 flex-1 text-center bg-indigo-50 py-1 rounded">{formatMoney(totalPay)}</span>
-                                            <Icons.ArrowRight className="w-3 h-3 text-slate-400 mx-1"/>
-                                            <span className="font-mono text-slate-700 flex-1 text-center bg-emerald-50 py-1 rounded">{formatMoney(reportData.totalPay)}</span>
-                                            <span className={`ml-2 font-bold text-xs w-12 text-right ${Math.abs(diff) < 10 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                {Math.abs(diff) < 10 ? '✓' : `${diff > 0 ? '+' : ''}${formatMoney(diff)}`}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {hint && (
-                                <div className="mt-3 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
-                                    <span className="font-bold">💡 Hint:</span> {hint}
-                                </div>
-                                    )}
+                            <ValidationSummary 
+                                matchStatus={matchStatus}
+                                myTotalHours={myTotalHours}
+                                reportData={reportData}
+                                totalPay={totalPay}
+                                diffHours={diffHours}
+                                diff={diff}
+                                hint={hint}
+                            />
                                 </div>
                             )}
                         </div>
