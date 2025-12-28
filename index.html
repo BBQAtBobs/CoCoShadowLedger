@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoCo ShadowLedger v8.7 (Current)</title>
+      <title>CoCo ShadowLedger v8.9 (Current)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#14B8A6">
+    <meta name="description" content="Shadow Payroll Tracker for AMR Paramedics & EMTs - Verify your paycheck accuracy">
+    
+    <!-- Favicons & Icons -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="logo-icon-color.svg">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Load Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,7 +28,19 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        body { background-color: #f8fafc; overscroll-behavior-y: none; }
+        /* Brand Colors - CoCo ShadowLedger */
+        :root {
+            --color-primary: #14B8A6;
+            --color-primary-dark: #0D9488;
+            --color-primary-darker: #0F766E;
+            --color-secondary: #F97316;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-error: #EF4444;
+            --color-dark: #0F172A;
+        }
+        
+        body { background-color: #f8fafc; overscroll-behavior-y: none; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         ::-webkit-scrollbar { width: 8px; height: 4px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
@@ -85,7 +103,7 @@
             
             /* Ensure text is black for clarity */
             * { color: black !important; }
-            .text-emerald-600, .text-indigo-600, .text-red-600 { 
+            .text-emerald-600, .text-teal-600, .text-red-600 { 
                 font-weight: bold !important;
             }
         }
@@ -252,7 +270,14 @@
             Lock: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
             PlayCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
             Sparkles: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></svg>,
-            DollarSign: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            DollarSign: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+            TrendingUp: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
+            Database: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>,
+            HelpCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
+            Edit: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
+            Zap: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            AlertCircle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
+            Clock: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         };
 
         // ═══════════════════════════════════════════════════════════════════
@@ -367,7 +392,7 @@
         };
 
         /**
-         * Parses raw Payroll Activity Report (PAR) text from ServiceNow
+         * Parses raw Payroll Activity Report (PAR) text from Workday
          * @param {string} rawText - Copy-pasted text from PAR
          * @param {Object} currentReport - Existing report data to merge with
          * @returns {Object} { success: boolean, data: Object, count: number }
@@ -379,9 +404,20 @@
             const foundDates = [];
             const dateLineRegex = /^(\d{2}\/\d{2}\/\d{4})$/; 
             const datesClearedInThisImport = new Set();
+            
+            // Known pay codes to look for
+            const knownPayCodes = [
+                'Regular', 'Regular Unsch', 'NF Holdover', 'Overtime Unsch', 
+                'NF No Break', 'Overtime', 'Train Reg', 'Train OT', 
+                'Imputed Income DP Medical', 'Meeting', 'Holiday', 'Sick',
+                'PTO', 'Vacation', 'Bereavement', 'Night Differential',
+                'Mando', 'Holdover', 'Missed Meal', 'Standby'
+            ];
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
+                
+                // Check for date line
                 if (dateLineRegex.test(line) && !line.includes('-')) {
                     const [m, d, y] = line.split('/');
                     currentDate = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
@@ -392,6 +428,8 @@
                     foundDates.push(currentDate);
                     continue;
                 }
+                
+                // Method 1: Look for "FLSA Hours" or "Non-FLSA Hours" triggers
                 if ((line === 'FLSA Hours' || line === 'Non-FLSA Hours') && currentDate) {
                     const code = lines[i-1]; 
                     const numRegex = /^(\d{1,5}(\.\d{1,4})?)$/;
@@ -405,6 +443,64 @@
                         newReportData[currentDate].totalPay += amount;
                         if(!code.toLowerCase().includes('no break') && !code.toLowerCase().includes('imputed')) newReportData[currentDate].totalHours += hours;
                         importCount++;
+                    }
+                    continue;
+                }
+                
+                // Method 2: Look for known pay codes followed by numbers
+                // Handle formats like "Regular" or "Medical.. : Regular"
+                if (currentDate) {
+                    let matchedCode = null;
+                    
+                    // Check if line matches a known pay code exactly
+                    if (knownPayCodes.includes(line)) {
+                        matchedCode = line;
+                    }
+                    // Check if line contains a pay code after a colon (e.g., "Medical.. : Regular")
+                    else if (line.includes(':')) {
+                        const afterColon = line.split(':').pop().trim();
+                        if (knownPayCodes.includes(afterColon)) {
+                            matchedCode = afterColon;
+                        }
+                    }
+                    // Check if line ends with a known pay code
+                    else {
+                        for (const code of knownPayCodes) {
+                            if (line.endsWith(code)) {
+                                matchedCode = code;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (matchedCode) {
+                        // Look ahead for 3 numbers: hours, rate, amount
+                        const numRegex = /^(\d{1,5}(\.\d{1,4})?)$/;
+                        const buffer = [];
+                        for (let j = 1; j <= 8; j++) {
+                            if (i+j < lines.length) {
+                                const testLine = lines[i+j].replace(',','');
+                                if (numRegex.test(testLine)) {
+                                    buffer.push(parseFloat(testLine));
+                                    if (buffer.length === 3) break;
+                                }
+                            }
+                        }
+                        if (buffer.length >= 3) {
+                            const [hours, rate, amount] = buffer;
+                            // Only add if not already added (avoid duplicates)
+                            const alreadyExists = newReportData[currentDate].entries.some(
+                                e => e.code === matchedCode && e.hours === hours && e.amount === amount
+                            );
+                            if (!alreadyExists) {
+                                newReportData[currentDate].entries.push({ code: matchedCode, hours, rate, amount });
+                                newReportData[currentDate].totalPay += amount;
+                                if(!matchedCode.toLowerCase().includes('no break') && !matchedCode.toLowerCase().includes('imputed')) {
+                                    newReportData[currentDate].totalHours += hours;
+                                }
+                                importCount++;
+                            }
+                        }
                     }
                 }
             }
@@ -489,9 +585,9 @@
             return (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 print:relative print:bg-transparent print:inset-auto print:block print:p-0 print:mt-8 page-break-before">
                     <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden print:max-h-none print:shadow-none print:max-w-full">
-                        <div className="bg-indigo-600 p-4 flex justify-between items-center text-white print:bg-white print:text-slate-900 print:border-b-2 print:border-indigo-600">
+                        <div className="bg-teal-500 p-4 flex justify-between items-center text-white print:bg-white print:text-slate-900 print:border-b-2 print:border-teal-500">
                             <h3 className="font-bold flex items-center gap-2"><Icons.Sparkles className="w-5 h-5"/> AI Pay Analysis</h3>
-                            <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded no-print"><Icons.X className="w-5 h-5"/></button>
+                            <button onClick={onClose} className="hover:bg-teal-600 p-1 rounded no-print"><Icons.X className="w-5 h-5"/></button>
                         </div>
                         <div className="p-6 overflow-y-auto flex-1 print:overflow-visible">
                             {needsKey ? (
@@ -506,7 +602,7 @@
                                                     href="https://aistudio.google.com/app/apikey" 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-1.5 text-xs text-indigo-600 font-bold hover:text-indigo-700 underline mb-4"
+                                                    className="inline-flex items-center gap-1.5 text-xs text-teal-600 font-bold hover:text-teal-700 underline mb-4"
                                                 >
                                                     → Get free API key here
                                                 </a>
@@ -516,7 +612,7 @@
                                             <input 
                                                 type="text" 
                                                 placeholder="Paste your API key (starts with AIza...)" 
-                                                className="w-full border border-amber-300 p-3 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                                                className="w-full border border-amber-300 p-3 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                                                 value={userKey}
                                                 onChange={(e) => { setUserKey(e.target.value); setError(null); }}
                                                 onKeyPress={(e) => { if (e.key === 'Enter') handleSaveKey(); }}
@@ -524,7 +620,7 @@
                                             <button 
                                                 onClick={handleSaveKey} 
                                                 disabled={!userKey || userKey.length < 10}
-                                                className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                                                className="w-full bg-teal-500 text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-teal-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors shadow-sm"
                                             >
                                                 Save & Analyze
                                             </button>
@@ -539,14 +635,14 @@
                                 </div>
                             ) : loading ? (
                                 <div className="text-center py-12">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
                                     <p className="text-slate-600 font-medium mb-1">Analyzing your paycheck...</p>
                                     <p className="text-slate-400 text-xs">This usually takes 3-5 seconds</p>
                                 </div>
                             ) : error ? (
                                 <div className="text-center py-4">
                                     <p className="text-red-500 font-bold mb-2">{error}</p>
-                                    <button onClick={() => runAnalysis(userKey)} className="text-indigo-600 underline text-sm">Try Again</button>
+                                    <button onClick={() => runAnalysis(userKey)} className="text-teal-600 underline text-sm hover:text-teal-700">Try Again</button>
                                 </div>
                             ) : (
                                 <div className="bg-gradient-to-br from-indigo-50 to-white rounded-lg p-6 border border-indigo-100">
@@ -735,10 +831,10 @@
                                         <span>{displayLabel}</span>
                                     </div>
                                     <div className="col-span-3 text-center">
-                                        <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">
+                                        <div className="font-mono text-slate-600 bg-teal-50 px-2 py-1 rounded">
                                             {proj.isDoubled ? proj.actualHours.toFixed(1) : proj.hours.toFixed(1)}h
                                             {proj.isDoubled && (
-                                                <span className="text-[8px] text-indigo-500 ml-1" title={`${proj.actualHours.toFixed(1)}h worked → ${proj.hours.toFixed(1)}h payable (doubled)`}>
+                                                <span className="text-[8px] text-teal-500 ml-1" title={`${proj.actualHours.toFixed(1)}h worked → ${proj.hours.toFixed(1)}h payable (doubled)`}>
                                                     ×2
                                                 </span>
                                             )}
@@ -761,9 +857,9 @@
                                     <div className="grid grid-cols-3 gap-2 text-[10px]">
                                         <div className="text-center">
                                             <div className="text-slate-400 uppercase text-[8px] mb-1">My Hrs</div>
-                                            <div className="font-mono text-slate-600 bg-indigo-50 px-2 py-1 rounded">
+                                            <div className="font-mono text-slate-600 bg-teal-50 px-2 py-1 rounded">
                                                 {proj.isDoubled ? proj.actualHours.toFixed(1) : proj.hours.toFixed(1)}
-                                                {proj.isDoubled && <span className="text-[8px] text-indigo-500 ml-0.5">×2</span>}
+                                                {proj.isDoubled && <span className="text-[8px] text-teal-500 ml-0.5">×2</span>}
                                             </div>
                                         </div>
                                         <div className="text-center">
@@ -802,7 +898,7 @@
                                 <div className="text-slate-500 text-[10px] mb-1">Total Hours</div>
                                 <div className="flex items-center gap-1 mb-1">
                                     <div className="flex-1 text-center">
-                                        <div className="text-[8px] text-indigo-600 font-bold uppercase">My Calc</div>
+                                        <div className="text-[8px] text-teal-600 font-bold uppercase">My Calc</div>
                                     </div>
                                     <div className="w-4"></div>
                                     <div className="flex-1 text-center">
@@ -811,7 +907,7 @@
                                     <div className="w-12"></div>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="font-mono text-slate-700 flex-1 text-center bg-indigo-50 py-1 rounded">{myTotalHours.toFixed(2)}h</span>
+                                    <span className="font-mono text-slate-700 flex-1 text-center bg-teal-50 py-1 rounded">{myTotalHours.toFixed(2)}h</span>
                                     <Icons.ArrowRight className="w-3 h-3 text-slate-400 mx-1"/>
                                     <span className="font-mono text-slate-700 flex-1 text-center bg-emerald-50 py-1 rounded">{reportData.totalHours.toFixed(2)}h</span>
                                     <span className={`ml-2 font-bold text-xs w-12 text-right ${Math.abs(diffHours) < HOURS_TOLERANCE ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -825,7 +921,7 @@
                                 <div className="text-slate-500 text-[10px] mb-1">Total Pay</div>
                                 <div className="flex items-center gap-1 mb-1">
                                     <div className="flex-1 text-center">
-                                        <div className="text-[8px] text-indigo-600 font-bold uppercase">My Calc</div>
+                                        <div className="text-[8px] text-teal-600 font-bold uppercase">My Calc</div>
                                     </div>
                                     <div className="w-4"></div>
                                     <div className="flex-1 text-center">
@@ -834,7 +930,7 @@
                                     <div className="w-12"></div>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="font-mono text-slate-700 flex-1 text-center bg-indigo-50 py-1 rounded">{formatMoney(totalPay)}</span>
+                                    <span className="font-mono text-slate-700 flex-1 text-center bg-teal-50 py-1 rounded">{formatMoney(totalPay)}</span>
                                     <Icons.ArrowRight className="w-3 h-3 text-slate-400 mx-1"/>
                                     <span className="font-mono text-slate-700 flex-1 text-center bg-emerald-50 py-1 rounded">{formatMoney(reportData.totalPay)}</span>
                                     <span className={`ml-2 font-bold text-xs w-12 text-right ${Math.abs(diff) < PAY_TOLERANCE ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -940,48 +1036,48 @@
                     {/* RESPONSIVE TABLE ROW */}
                     <div 
                         onClick={onToggleExpand}
-                        className={`group cursor-pointer transition-all ${showExpanded ? 'bg-indigo-100' : 'hover:bg-slate-50/50'}`}
+                        className={`group cursor-pointer transition-all ${showExpanded ? 'bg-teal-50' : 'hover:bg-slate-50/50'}`}
                     >
                         {/* DESKTOP VIEW: Grid Layout */}
                         <div className="hidden md:grid grid-cols-12 gap-3 px-6 py-4 items-center">
-                            {/* Column 1: Date */}
-                            <div className="col-span-2">
-                                <div className="font-bold text-slate-900 text-sm">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
-                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">{timeDisplay}</div>
+                        {/* Column 1: Date */}
+                        <div className="col-span-2">
+                            <div className="font-bold text-slate-900 text-sm">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">{timeDisplay}</div>
                         </div>
 
-                            {/* Column 2: My Hours */}
-                            <div className="col-span-2 text-center">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
-                                <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
+                        {/* Column 2: My Hours */}
+                        <div className="col-span-2 text-center">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
+                            <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
                     </div>
 
-                            {/* Column 3: PAR Hours */}
-                            <div className="col-span-2 text-center">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">PAR Hours</div>
-                                <div className="font-mono font-bold text-slate-700 text-sm">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
+                        {/* Column 3: PAR Hours */}
+                        <div className="col-span-2 text-center">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">PAR Hours</div>
+                            <div className="font-mono font-bold text-slate-700 text-sm">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
+                        </div>
+
+                        {/* Column 4: My Pay */}
+                        <div className="col-span-2 text-right">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Calc</div>
+                                <div className="font-mono font-bold text-teal-600">{formatMoney(totalPay)}</div>
+                        </div>
+
+                        {/* Column 5: PAR Pay */}
+                        <div className="col-span-2 text-right">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
+                            <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
+                        </div>
+
+                        {/* Column 6: Status Badge */}
+                        <div className="col-span-2 flex justify-end items-center gap-2">
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
+                                {statusBadge.icon}
+                                <span>{statusBadge.label}</span>
                             </div>
-
-                            {/* Column 4: My Pay */}
-                            <div className="col-span-2 text-right">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Calc</div>
-                                <div className="font-mono font-bold text-indigo-600">{formatMoney(totalPay)}</div>
-                            </div>
-
-                            {/* Column 5: PAR Pay */}
-                            <div className="col-span-2 text-right">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
-                                <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
-                                            </div>
-
-                            {/* Column 6: Status Badge */}
-                            <div className="col-span-2 flex justify-end items-center gap-2">
-                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
-                                    {statusBadge.icon}
-                                    <span>{statusBadge.label}</span>
-                                                </div>
-                                <div className="text-slate-300 group-hover:text-indigo-400 transition-colors">
-                                    {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
+                                <div className="text-slate-300 group-hover:text-teal-400 transition-colors">
+                                {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
                                             </div>
                                     </div>
                                     </div>
@@ -1002,7 +1098,7 @@
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div className="bg-slate-50 rounded-lg p-2">
                                     <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">My Calc</div>
-                                    <div className="font-mono font-bold text-indigo-600">{formatMoney(totalPay)}</div>
+                                    <div className="font-mono font-bold text-teal-600">{formatMoney(totalPay)}</div>
                                     <div className="text-xs text-slate-400 font-mono mt-0.5">{myTotalHours.toFixed(1)}h</div>
                                 </div>
                                 <div className="bg-slate-50 rounded-lg p-2">
@@ -1013,7 +1109,7 @@
                             </div>
 
                             <div className="flex justify-center mt-2">
-                                <div className="text-slate-300 group-hover:text-indigo-400 transition-colors">
+                                <div className="text-slate-300 group-hover:text-teal-400 transition-colors">
                                     {showExpanded ? <Icons.ChevronUp className="w-5 h-5"/> : <Icons.ChevronDown className="w-5 h-5"/>}
                                 </div>
                             </div>
@@ -1021,7 +1117,7 @@
                     </div>
 
                     {/* EXPANDABLE EDIT PANEL */}
-                    <div className={`${showExpanded ? 'block' : 'hidden'} expandable-row bg-gradient-to-br from-indigo-50 via-white to-slate-50/30 border-t-4 border-indigo-300 shadow-inner max-h-[70vh] overflow-y-auto px-3 md:px-6 py-4 md:py-6 print:block print:max-h-none print:overflow-visible`}>
+                    <div className={`${showExpanded ? 'block' : 'hidden'} expandable-row bg-gradient-to-br from-teal-50 via-white to-slate-50/30 border-t-4 border-teal-300 shadow-inner max-h-[70vh] overflow-y-auto px-3 md:px-6 py-4 md:py-6 print:block print:max-h-none print:overflow-visible`}>
                             <div className="max-w-6xl mx-auto">
                                 {/* Header Actions */}
                                 <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
@@ -1029,10 +1125,10 @@
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); onAddShift(dayGroup.date); }} 
-                                            className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
+                                            className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
                                         >
                                             <Icons.Plus className="w-3.5 h-3.5"/> Add Shift
-                            </button>
+                                        </button>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); if(confirm('Delete this day?')) onRemove(null, dayGroup.date); }} 
                                             className="px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-200 flex items-center gap-1.5 transition-colors"
@@ -1040,13 +1136,13 @@
                                             <Icons.Trash2 className="w-3.5 h-3.5"/> Delete Day
                                         </button>
                                     </div>
-                                        </div>
-                                        
+                                </div>
+
                                 {/* Classification Agreement Checker */}
                                 {reportData && (
                                     <div className="mb-6 bg-white rounded-lg border-2 border-slate-200 p-4 shadow-sm">
                                         <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                            <Icons.CheckCircle className="w-4 h-4 text-indigo-500"/>
+                                            <Icons.CheckCircle className="w-4 h-4 text-teal-500"/>
                                             Classification Agreement
                                         </div>
                                         <div className="flex flex-wrap gap-2">
@@ -1143,7 +1239,7 @@
                              const crossesMidnight = endD.getDate() > startD.getDate();
                              const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
 
-                                            return (
+                             return (
                                         <div key={shift.id} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative group">
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); onRemove(shift.id); }} 
@@ -1159,17 +1255,17 @@
                                                         type="number" 
                                                         value={shift.paidLeaveHours} 
                                                         onChange={(e) => { e.stopPropagation(); onUpdate(shift.id, 'paidLeaveHours', parseFloat(e.target.value) || 0); }} 
-                                                        className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                                        className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                                                     />
                                                     <span className="text-slate-400 text-xs font-medium">hours</span>
-                                                    </div>
+                                            </div>
                                         ) : (
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <input 
                                                         type="time" 
                                                         value={shift.startTime} 
                                                         onChange={(e) => { e.stopPropagation(); onUpdate(shift.id, 'startTime', e.target.value); }} 
-                                                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                                                     />
                                                     <Icons.ArrowRight className="w-4 h-4 text-slate-300 flex-shrink-0"/>
                                                     <div className="relative flex-1">
@@ -1177,12 +1273,12 @@
                                                             type="time" 
                                                             value={shift.endTime} 
                                                             onChange={(e) => { e.stopPropagation(); onUpdate(shift.id, 'endTime', e.target.value); }} 
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                                                         />
                                                         {crossesMidnight && <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">+1</span>}
                                                 </div>
                                                     <span className="font-mono text-xs text-slate-500 font-medium min-w-[3rem] text-right">{estHours.toFixed(2)}h</span>
-                                    </div>
+                                            </div>
                                         )}
                                             
                                             <div className="flex flex-wrap gap-2">
@@ -1194,8 +1290,8 @@
                                                         <button onClick={(e) => { e.stopPropagation(); onUpdate(shift.id, 'isHoldover', !shift.isHoldover); }} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${shift.isHoldover ? 'bg-orange-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>HOLD</button>
                                                         <button onClick={(e) => { e.stopPropagation(); onUpdate(shift.id, 'isMando', !shift.isMando); }} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${shift.isMando ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>MANDO</button>
                                             </>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
                                 </div>
                              );
                         })}
@@ -1214,68 +1310,68 @@
                                             <div key={idx} className="flex justify-between items-center text-xs py-2 border-b border-slate-100 last:border-0">
                                                 <span className="text-slate-700 font-medium truncate flex-1" title={entry.code}>{entry.code}</span>
                                                 <span className="font-mono text-slate-500 text-[11px] ml-3">{entry.hours.toFixed(1)}h × ${entry.rate.toFixed(2)}</span>
-                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                     <div className="flex justify-between items-center pt-3 border-t-2 border-emerald-200">
                                         <span className="font-bold text-sm text-slate-700">Actual Total</span>
                                         <span className="font-bold text-lg text-emerald-600">{formatMoney(reportData.totalPay)}</span>
                                     </div>
-                        </div>
-                    ) : (
+                                </div>
+                            ) : (
                                 <div className="bg-white rounded-lg p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center min-h-[200px]">
                                     <Icons.Clipboard className="w-10 h-10 text-slate-300 mb-3"/>
                                     <p className="text-sm text-slate-500 font-medium mb-1">No PAR Data</p>
                                     <p className="text-xs text-slate-400 mb-4">Import payroll report to validate</p>
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); setActiveTab('import'); }} 
-                                        className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-colors"
+                                        className="px-4 py-2 bg-teal-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-colors"
                                     >
                                         Import Report
-                             </button>
-                         </div>
-                    )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                                        </div>
-                                        
+                    </div>
+
                     {/* EXPANDABLE DETAIL: Reconciliation Grid */}
                     {reportData && (
                         <div className="border-t border-slate-200 bg-slate-50 p-3 md:p-4 mt-4 no-page-break">
                             <div className="mb-3">
                                 <div className="text-xs font-bold text-slate-600 flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
-                                        <Icons.Grid className="w-4 h-4"/>
-                                        Line-by-Line Breakdown
-                                    </div>
+                                    <Icons.Grid className="w-4 h-4"/>
+                                    Line-by-Line Breakdown
+                                </div>
                                     <div className="flex items-center gap-3 text-[9px] font-normal">
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-indigo-50 border border-indigo-200 rounded"></div>
+                                            <div className="w-3 h-3 bg-teal-50 border border-indigo-200 rounded"></div>
                                             <span className="text-indigo-700">My Calc</span>
-                                        </div>
+                                </div>
                                         <div className="flex items-center gap-1">
                                             <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded"></div>
                                             <span className="text-emerald-700">PAR Data</span>
-                                        </div>
-                                    </div>
+                            </div>
                                 </div>
+                                                    </div>
                                 {matchStatus === 'match' ? (
                                     <div className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded p-2.5 mb-1 flex items-start gap-2">
                                         <Icons.CheckCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"/>
-                                        <div>
+                                    <div>
                                             <div className="font-bold mb-0.5">✓ Totals Match - You're Good!</div>
                                             <div className="text-emerald-600 leading-relaxed">PAR may classify hours differently (e.g., Regular vs Holdover), but your <strong>total hours and pay align</strong>. Line differences below are informational only.</div>
-                                        </div>
-                                    </div>
+                                </div>
+                        </div>
                                 ) : (
                                     <div className="text-[10px] text-red-700 bg-red-50 border border-red-200 rounded p-2.5 mb-1 flex items-start gap-2">
                                         <Icons.AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"/>
-                                        <div>
+                                    <div>
                                             <div className="font-bold mb-0.5">⚠️ Total Mismatch Detected</div>
                                             <div className="text-red-600 leading-relaxed">Your calculated totals don't match PAR. Review the breakdown below to find discrepancies.</div>
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                                </div>
                             <ReconciliationGrid 
                                 projectedMap={projectedMap} 
                                 actualMap={actualMap} 
@@ -1295,7 +1391,7 @@
                                 </div>
                             )}
                         </div>
-                         </div>
+                                </div>
                 </div>
             );
         };
@@ -1305,12 +1401,141 @@
         // ═══════════════════════════════════════════════════════════════════
         
         /**
+         * Welcome Modal - First-time user onboarding
+         * @component
+         */
+        const WelcomeModal = ({ onClose }) => {
+            const handleStart = () => {
+                localStorage.setItem('hasVisited', 'true');
+                onClose();
+            };
+            
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleStart}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full animate-in zoom-in" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white p-6 rounded-t-2xl">
+                            <div className="flex items-center justify-center mb-3">
+                                <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 2L6 6V14C6 20.5 10 26.5 16 29C22 26.5 26 20.5 26 14V6L16 2Z" fill="white"/>
+                                    <path d="M11 16L14 19L21 11" stroke="#14B8A6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-center">Welcome to CoCo ShadowLedger!</h2>
+                            <p className="text-teal-100 text-center text-sm mt-1">Protect Your Paycheck</p>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="p-6 space-y-5">
+                            {/* What is this */}
+                            <div>
+                                <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <Icons.HelpCircle className="w-5 h-5 text-teal-600"/>
+                                    What is this?
+                                </h3>
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    A tool that helps <strong>AMR Paramedics & EMTs</strong> verify their paychecks are accurate by comparing punch data against official payroll records.
+                                </p>
+                            </div>
+                            
+                            {/* Why you need it */}
+                            <div>
+                                <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <Icons.AlertTriangle className="w-5 h-5 text-amber-500"/>
+                                    Why you need it
+                                </h3>
+                                <ul className="text-slate-600 text-sm space-y-1">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-0.5">•</span>
+                                        <span><strong>Mandos</strong> sometimes counted as regular pay</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-0.5">•</span>
+                                        <span><strong>Holiday pay</strong> missing</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-500 mt-0.5">•</span>
+                                        <span><strong>Missed meals</strong> not paid</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            {/* How it works */}
+                            <div>
+                                <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <Icons.CheckCircle className="w-5 h-5 text-emerald-500"/>
+                                    How it works
+                                </h3>
+                                <ol className="text-slate-600 text-sm space-y-2">
+                                    <li className="flex items-start gap-3">
+                                        <span className="bg-teal-100 text-teal-700 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">1</span>
+                                        <span className="pt-0.5">Set your base hourly rate</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="bg-teal-100 text-teal-700 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">2</span>
+                                        <span className="pt-0.5">Import your Kronos timecard</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="bg-teal-100 text-teal-700 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</span>
+                                        <span className="pt-0.5">Import your Workday payroll report</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="bg-emerald-100 text-emerald-700 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                        <span className="pt-0.5">See if your paycheck matches!</span>
+                                    </li>
+                                </ol>
+                            </div>
+                            
+                            {/* Key benefits */}
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                                <div className="flex items-center gap-2 text-emerald-800 text-sm">
+                                    <Icons.Lock className="w-4 h-4 flex-shrink-0"/>
+                                    <span><strong>Private & Secure:</strong> All data stays on your device</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-emerald-800 text-sm mt-1.5">
+                                    <Icons.Clock className="w-4 h-4 flex-shrink-0"/>
+                                    <span><strong>Quick Setup:</strong> Takes about 5 minutes</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Footer Actions */}
+                        <div className="p-6 pt-0 space-y-3">
+                            <button 
+                                onClick={handleStart}
+                                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all transform hover:scale-105"
+                            >
+                                Let's Get Started! 🚀
+                            </button>
+                            <button 
+                                onClick={handleStart}
+                                className="w-full text-slate-500 hover:text-slate-700 text-sm py-2 transition-colors"
+                            >
+                                Skip intro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        /**
          * Import View - Handles timecard and payroll report data import
          * @component
          */
         const ImportView = ({ importMode, setImportMode, importText, setImportText, handleImport, settings, setSettings }) => {
             const [showTutorial, setShowTutorial] = useState(false);
             const [showPrivacyInfo, setShowPrivacyInfo] = useState(false);
+            const [entryMode, setEntryMode] = useState('paste'); // 'paste' or 'manual'
+            const [manualShift, setManualShift] = useState({
+                date: new Date().toISOString().split('T')[0],
+                startTime: '07:00',
+                endTime: '19:00',
+                mando: false,
+                holiday: false,
+                missedMeal: false,
+                holdover: false
+            });
 
             return (
                 <div className="space-y-6">
@@ -1368,7 +1593,7 @@
                             <p className="text-xs text-emerald-700 font-medium"><strong>Verify it yourself:</strong> You can turn on Airplane Mode before pasting your sensitive data.</p>
                         </div>
                     )}
-                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-indigo-900">
+                    <div className="bg-teal-50 border border-indigo-200 rounded-lg p-4 text-sm text-indigo-900">
                          <h3 className="font-bold text-lg mb-2 flex items-center gap-2"><Icons.CheckCircle className="w-5 h-5"/> How to Audit Your Pay</h3>
                          <ol className="list-decimal pl-5 space-y-1">
                              <li><strong>Set Base Rate:</strong> Enter your hourly rate above ☝️</li>
@@ -1382,8 +1607,153 @@
                             <button onClick={() => setImportMode('timecard')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='timecard'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>1. Timecard (TC)</button>
                             <button onClick={() => setImportMode('report')} className={`px-4 py-2 rounded text-sm font-bold flex-1 ${importMode==='report'?'bg-indigo-600 text-white':'bg-slate-100 text-slate-500'}`}>2. Payroll Report (PAR)</button>
                         </div>
+                        
+                        {/* Entry Mode Toggle for Timecard */}
+                        {importMode === 'timecard' && (
+                            <div className="mb-4 flex gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                <button 
+                                    onClick={() => setEntryMode('paste')} 
+                                    className={`flex-1 px-3 py-2 rounded text-xs font-bold transition-all ${entryMode==='paste'?'bg-white text-slate-700 shadow-sm':'text-slate-400'}`}
+                                >
+                                    📋 Copy/Paste from Kronos
+                                </button>
+                                <button 
+                                    onClick={() => setEntryMode('manual')} 
+                                    className={`flex-1 px-3 py-2 rounded text-xs font-bold transition-all ${entryMode==='manual'?'bg-white text-slate-700 shadow-sm':'text-slate-400'}`}
+                                >
+                                    ✏️ Quick Manual Entry
+                                </button>
+                            </div>
+                        )}
+                        
+                        {/* Manual Entry Form */}
+                        {importMode === 'timecard' && entryMode === 'manual' && (
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 mb-4">
+                                <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                    <Icons.Edit className="w-5 h-5 text-blue-600"/>
+                                    Add Shift Manually
+                                </h3>
+                                <div className="space-y-3">
+                                    {/* Date */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1">Date</label>
+                                        <input 
+                                            type="date" 
+                                            value={manualShift.date}
+                                            onChange={(e) => setManualShift({...manualShift, date: e.target.value})}
+                                            className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:border-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    
+                                    {/* Times */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 mb-1">Start Time</label>
+                                            <input 
+                                                type="time" 
+                                                value={manualShift.startTime}
+                                                onChange={(e) => setManualShift({...manualShift, startTime: e.target.value})}
+                                                className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 mb-1">End Time</label>
+                                            <input 
+                                                type="time" 
+                                                value={manualShift.endTime}
+                                                onChange={(e) => setManualShift({...manualShift, endTime: e.target.value})}
+                                                className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Checkboxes */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-2">Shift Details</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <label className="flex items-center gap-2 p-2 bg-white rounded-lg border-2 border-slate-200 cursor-pointer hover:border-orange-300 transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={manualShift.mando}
+                                                    onChange={(e) => setManualShift({...manualShift, mando: e.target.checked})}
+                                                    className="w-4 h-4 text-orange-500"
+                                                />
+                                                <span className="text-sm font-medium">🔥 Mando</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 p-2 bg-white rounded-lg border-2 border-slate-200 cursor-pointer hover:border-red-300 transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={manualShift.holiday}
+                                                    onChange={(e) => setManualShift({...manualShift, holiday: e.target.checked})}
+                                                    className="w-4 h-4 text-red-500"
+                                                />
+                                                <span className="text-sm font-medium">🎉 Holiday</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 p-2 bg-white rounded-lg border-2 border-slate-200 cursor-pointer hover:border-yellow-300 transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={manualShift.missedMeal}
+                                                    onChange={(e) => setManualShift({...manualShift, missedMeal: e.target.checked})}
+                                                    className="w-4 h-4 text-yellow-500"
+                                                />
+                                                <span className="text-sm font-medium">🍔 Missed Meal</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 p-2 bg-white rounded-lg border-2 border-slate-200 cursor-pointer hover:border-purple-300 transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={manualShift.holdover}
+                                                    onChange={(e) => setManualShift({...manualShift, holdover: e.target.checked})}
+                                                    className="w-4 h-4 text-purple-500"
+                                                />
+                                                <span className="text-sm font-medium">⏰ Holdover</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Add Button */}
+                                    <button 
+                                        onClick={() => {
+                                            // Calculate hours
+                                            const start = new Date(`${manualShift.date}T${manualShift.startTime}`);
+                                            let end = new Date(`${manualShift.date}T${manualShift.endTime}`);
+                                            if (end <= start) end.setDate(end.getDate() + 1);
+                                            const hours = ((end - start) / (1000 * 60 * 60)).toFixed(2);
+                                            
+                                            // Create shift text that mimics Kronos format
+                                            const shiftText = `${manualShift.date} ${manualShift.startTime} ${manualShift.endTime} ${hours}`;
+                                            
+                                            // Add to import text
+                                            setImportText(prev => prev ? prev + '\n' + shiftText : shiftText);
+                                            
+                                            // Reset form
+                                            const tomorrow = new Date(manualShift.date);
+                                            tomorrow.setDate(tomorrow.getDate() + 1);
+                                            setManualShift({
+                                                date: tomorrow.toISOString().split('T')[0],
+                                                startTime: '07:00',
+                                                endTime: '19:00',
+                                                mando: false,
+                                                holiday: false,
+                                                missedMeal: false,
+                                                holdover: false
+                                            });
+                                            
+                                            alert(`✅ Shift added! Add more or click "Process Timecard" below when done.`);
+                                        }}
+                                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all transform hover:scale-105"
+                                    >
+                                        ➕ Add This Shift
+                                    </button>
+                                    
+                                    <div className="text-xs text-slate-500 text-center">
+                                        💡 Tip: Add all your shifts, then click "Process Timecard" below
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
                         <div className="mb-4 text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-100">
-                             {importMode === 'timecard' ? (
+                             {importMode === 'timecard' && entryMode === 'paste' ? (
                                 <div>
                                     <p className="font-bold text-slate-700 mb-1">Instructions:</p>
                                     <p className="mb-2">1. Go to <a href="https://globalmedical-sso.prd.mykronos.com/timekeeping#/myTimecard?ctxt=myTimecard" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Kronos Timecard</a>.</p>
@@ -1391,38 +1761,111 @@
                                     <p className="mb-2 text-red-600 font-bold">3. Switch to LIST VIEW.</p>
                                     <p>4. Select All text (Ctrl+A), Copy (Ctrl+C), Paste below.</p>
                                 </div>
+                             ) : importMode === 'timecard' && entryMode === 'manual' ? (
+                                <div className="text-center">
+                                    <p className="font-bold text-slate-700 mb-1">📱 Perfect for Mobile!</p>
+                                    <p className="text-slate-600">Quickly log shifts right after you work them. Takes 15 seconds per shift!</p>
+                                </div>
                              ) : (
                                 <div>
                                     <p className="font-bold text-slate-700 mb-1">Instructions:</p>
-                                    <p className="mb-2">1. Go to <a href="https://gmrcorp.service-now.com/gps?id=sc_cat_item&sys_id=1c0048e6dbac6090f9f045e8139619c2" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Payroll Activity Report</a>.</p>
-                                    <p className="mb-2">2. Enter dates.</p>
-                                    <p className="mb-2 font-bold text-red-600">3. Crucial: Select 'All' items per page.</p>
+                                    <p className="mb-2">1. Go to <a href="https://wd503.myworkday.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Workday Payroll Activity Report</a>.</p>
+                                    <p className="mb-2">2. Search for "Payroll Activity Report" and select your date range.</p>
+                                    <p className="mb-2 font-bold text-red-600">3. Crucial: Select 'All' items per page (not just 1-50).</p>
                                     <p>4. Select All text (Ctrl+A), Copy (Ctrl+C), Paste below.</p>
                                 </div>
                              )}
+                             
+                             {/* Workday Bookmarklet - Desktop Only */}
+                             {importMode === 'report' && (
+                                <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg">
+                                    <div className="flex items-start gap-2 mb-2">
+                                        <Icons.Zap className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5"/>
+                                        <div>
+                                            <p className="font-bold text-purple-900 text-sm">⚡ Faster Way: One-Click Import!</p>
+                                            <p className="text-purple-800 text-xs mt-1">Skip copy-paste! Drag this button to your bookmarks bar:</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-3">
+                                        <a 
+                                            href={`javascript:(function(){if(!window.location.hostname.includes('myworkday.com')){alert('⚠️ Only works on Workday pages!\\n\\nGo to your Workday Payroll Activity Report first.');return;}try{const t=document.body.innerText;if(!t||t.length<50)throw new Error('Not enough data found. Make sure the page is fully loaded.');navigator.clipboard.writeText(t).then(()=>{alert('✅ Data copied to clipboard!\\n\\n1. Go back to CoCo ShadowLedger\\n2. Click \\"Paste from Clipboard\\" button\\n3. Process your data');}).catch(()=>{prompt('Copy this data manually (Ctrl+C):', t);});}catch(e){alert('❌ Error: '+e.message+'\\n\\nMake sure:\\n1. You\\'re on the Payroll Activity Report page\\n2. Page is fully loaded\\n3. You selected \\"All\\" items');console.error(e);}})();`}
+                                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-move border-2 border-white"
+                                            draggable="true"
+                                        >
+                                            📥 Import to CoCo SL
+                                        </a>
+                                        <div className="flex-1 text-xs text-purple-700">
+                                            <p className="font-bold">How to use:</p>
+                                            <ol className="list-decimal pl-4 mt-1 space-y-0.5">
+                                                <li>Drag button → bookmarks bar</li>
+                                                <li>Go to Workday report</li>
+                                                <li>Click bookmarklet (copies data)</li>
+                                                <li>Click "Paste from Clipboard" below</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={async () => {
+                                            try {
+                                                const text = await navigator.clipboard.readText();
+                                                if (text && text.length > 50) {
+                                                    setImportText(text);
+                                                    alert('✅ Data pasted from clipboard! Click "Process Payroll Report" below.');
+                                                } else {
+                                                    alert('⚠️ Clipboard is empty or has very little data.\n\nMake sure you:\n1. Went to Workday Payroll Activity Report\n2. Clicked the bookmarklet in your bookmarks bar\n3. Saw "✅ Data copied to clipboard!" message');
+                                                }
+                                            } catch (err) {
+                                                alert('❌ Could not read clipboard.\n\nYour browser might need permission.\n\nTry:\n1. Click the bookmarklet again\n2. If you see a prompt, manually copy the text\n3. Come back here and paste normally (Ctrl+V)');
+                                                console.error('Clipboard error:', err);
+                                            }
+                                        }}
+                                        className="mt-3 w-full bg-white border-2 border-purple-300 text-purple-700 px-4 py-2 rounded-lg font-bold text-xs hover:bg-purple-50 transition-colors"
+                                    >
+                                        📋 Paste from Clipboard
+                                    </button>
+                                </div>
+                             )}
+                             
                              <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-800">
                                 <strong>📱 Mobile Tips:</strong>
                                 <ul className="list-disc pl-4 mt-1 space-y-1">
                                     <li><strong>iOS/Android:</strong> Long-press text → Select All → Copy.</li>
                                 </ul>
-                                <button onClick={() => setShowTutorial(!showTutorial)} className="mt-3 flex items-center gap-1 font-bold text-indigo-600 hover:underline">
+                                <button onClick={() => setShowTutorial(!showTutorial)} className="mt-3 flex items-center gap-1 font-bold text-teal-600 hover:underline">
                                     <Icons.PlayCircle className="w-4 h-4"/> {showTutorial ? 'Hide Tutorial' : 'Watch Tutorial'}
                                 </button>
                                 {showTutorial && (
-                                    <div className="mt-3 p-2 bg-slate-100 rounded text-center animate-in fade-in slide-in-from-top-2">
-                                        <p className="text-xs text-slate-500 mb-2 font-semibold">Tutorial for {importMode === 'timecard' ? 'Kronos' : 'ServiceNow'}</p>
+                                    <div className="mt-3 p-2 bg-slate-100 rounded text-center animate-in fade-in-from-top-2">
+                                        <p className="text-xs text-slate-500 mb-2 font-semibold">Tutorial for {importMode === 'timecard' ? 'Kronos' : 'Workday'}</p>
                                         <div className="h-32 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs">[GIF Placeholder]</div>
                                     </div>
                                 )}
                              </div>
                         </div>
-                        <textarea className="w-full h-48 p-2 border rounded mb-4 text-xs font-mono" value={importText} onChange={e => setImportText(e.target.value)} placeholder="Paste text here..." />
-                        <div className="flex gap-2">
-                            <button onClick={() => setImportText('')} className="px-4 py-2 text-slate-500 hover:text-slate-700">Clear</button>
-                            <button onClick={handleImport} disabled={!importText} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded font-bold shadow-sm">
-                                {importMode === 'timecard' ? 'Process Timecard' : 'Process Payroll Report'}
-                            </button>
+                        
+                        <div className="text-center text-xs text-slate-400 my-3">
+                            {importMode === 'report' ? '— OR use manual copy-paste below —' : 
+                             importMode === 'timecard' && entryMode === 'manual' ? '— Added shifts appear below —' : ''}
                         </div>
+                        
+                        {/* Show textarea for paste mode or when there's manual entry data */}
+                        {(entryMode === 'paste' || importText) && (
+                            <>
+                                <textarea 
+                                    className="w-full h-48 p-2 border rounded mb-4 text-xs font-mono" 
+                                    value={importText} 
+                                    onChange={e => setImportText(e.target.value)} 
+                                    placeholder={entryMode === 'manual' ? 'Shifts you add will appear here...' : 'Paste text here...'}
+                                    readOnly={importMode === 'timecard' && entryMode === 'manual'}
+                                />
+                                <div className="flex gap-2">
+                                    <button onClick={() => setImportText('')} className="px-4 py-2 text-slate-500 hover:text-slate-700">Clear</button>
+                                    <button onClick={handleImport} disabled={!importText} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded font-bold shadow-sm">
+                                        {importMode === 'timecard' ? 'Process Timecard' : 'Process Payroll Report'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             );
@@ -1432,12 +1875,212 @@
          * Report View - Displays raw payroll report data
          * @component
          */
-        const ReportView = ({ payrollReport, payRateAnalysis }) => (
+        const ReportView = ({ payrollReport, payRateAnalysis, calculatedTotals }) => {
+            const [showRawData, setShowRawData] = useState(false);
+            
+            // Use pre-calculated totals from parent (same logic as Dashboard)
+            const myCalculatedTotal = calculatedTotals.grandTotalPay;
+            const myTotalHours = calculatedTotals.totalHours;
+            
+            // Calculate total from payroll report
+            const officialTotal = useMemo(() => {
+                if (Object.keys(payrollReport).length === 0) return 0;
+                return Object.values(payrollReport).reduce((acc, day) => acc + day.totalPay, 0);
+            }, [payrollReport]);
+            
+            const officialTotalHours = useMemo(() => {
+                if (Object.keys(payrollReport).length === 0) return 0;
+                return Object.values(payrollReport).reduce((acc, day) => {
+                    return acc + day.entries.reduce((sum, e) => sum + parseFloat(e.hours || 0), 0);
+                }, 0);
+            }, [payrollReport]);
+            
+            const difference = officialTotal - myCalculatedTotal;
+            const hoursDiff = officialTotalHours - myTotalHours;
+            const hasData = myTotalHours > 0 && Object.keys(payrollReport).length > 0;
+            const isMatch = hasData && Math.abs(difference) < 10;
+            const hasDiscrepancy = hasData && Math.abs(difference) >= 10;
+            
+            // Analytics calculations
+            const payPeriods = useMemo(() => {
+                if (Object.keys(payrollReport).length === 0) return [];
+                const dates = Object.keys(payrollReport).sort();
+                const periods = [];
+                let currentPeriod = { dates: [], totalPay: 0, totalHours: 0 };
+                
+                dates.forEach((date, idx) => {
+                    const day = payrollReport[date];
+                    currentPeriod.dates.push(date);
+                    currentPeriod.totalPay += day.totalPay;
+                    currentPeriod.totalHours += day.entries.reduce((sum, e) => sum + parseFloat(e.hours || 0), 0);
+                    
+                    // Group by ~14 day periods or when there's a gap
+                    if (currentPeriod.dates.length >= 10 || idx === dates.length - 1) {
+                        if (currentPeriod.dates.length > 0) {
+                            periods.push({
+                                startDate: currentPeriod.dates[0],
+                                endDate: currentPeriod.dates[currentPeriod.dates.length - 1],
+                                totalPay: currentPeriod.totalPay,
+                                totalHours: currentPeriod.totalHours,
+                                avgRate: currentPeriod.totalPay / currentPeriod.totalHours
+                            });
+                        }
+                        currentPeriod = { dates: [], totalPay: 0, totalHours: 0 };
+                    }
+                });
+                
+                return periods.slice(-6); // Last 6 pay periods
+            }, [payrollReport]);
+            
+            // Pay code breakdown for analytics
+            const codeBreakdown = useMemo(() => {
+                const breakdown = {};
+                Object.values(payrollReport).forEach(day => {
+                    day.entries.forEach(entry => {
+                        if (!breakdown[entry.code]) {
+                            breakdown[entry.code] = { pay: 0, hours: 0, count: 0 };
+                        }
+                        breakdown[entry.code].pay += entry.amount;
+                        breakdown[entry.code].hours += parseFloat(entry.hours || 0);
+                        breakdown[entry.code].count++;
+                    });
+                });
+                
+                const totalPay = Object.values(breakdown).reduce((sum, item) => sum + item.pay, 0);
+                return Object.entries(breakdown)
+                    .map(([code, data]) => ({ 
+                        code, 
+                        ...data, 
+                        percentage: ((data.pay / totalPay) * 100).toFixed(1) 
+                    }))
+                    .sort((a, b) => b.pay - a.pay)
+                    .slice(0, 5); // Top 5 codes
+            }, [payrollReport]);
+            
+            return (
              <div className="space-y-6">
-                <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500">
-                    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2"><Icons.Search className="w-4 h-4 text-indigo-500"/> Pay Rate Analysis</h3>
-                    <p className="text-xs text-slate-500 mb-3">Orange rows indicate a code was paid at multiple different rates (e.g. mid-period raise).</p>
-                    {Object.keys(payRateAnalysis).length === 0 ? <p className="text-slate-400 text-xs italic">Import PAR to see data.</p> : (
+                    {/* AUDIT SUMMARY - Top Priority */}
+                    <div className={`p-6 rounded-xl border-2 shadow-lg ${!hasData ? 'bg-slate-50 border-slate-200' : isMatch ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50 border-amber-300'}`}>
+                        <div className="text-center">
+                            {!hasData ? (
+                                <>
+                                    <Icons.FileText className="w-16 h-16 text-slate-400 mx-auto mb-4"/>
+                                    <h2 className="text-2xl font-bold text-slate-700 mb-2">Audit Report</h2>
+                                    <p className="text-slate-500">Import your Kronos shifts and Workday PAR to generate your paycheck validation report.</p>
+                                    <div className="mt-4 text-sm text-slate-400">
+                                        <p>✓ Track shifts • ✓ Import payroll • ✓ Validate accuracy</p>
+                                    </div>
+                                </>
+                            ) : isMatch ? (
+                                <>
+                                    <Icons.CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4 animate-in zoom-in"/>
+                                    <h2 className="text-2xl font-bold text-emerald-700 mb-2">✓ Paycheck Validated</h2>
+                                    <p className="text-slate-600 mb-4">Your calculations match the official payroll</p>
+                                    <div className="inline-block bg-white px-4 py-2 rounded-lg shadow-sm">
+                                        <div className="text-3xl font-bold text-emerald-600">{formatMoney(officialTotal)}</div>
+                                        <div className="text-xs text-slate-500 mt-1">Total Pay Confirmed</div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Icons.AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-4 animate-in zoom-in"/>
+                                    <h2 className="text-2xl font-bold text-amber-700 mb-2">⚠️ Discrepancy Detected</h2>
+                                    <p className="text-slate-600 mb-4">Review the differences below</p>
+                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                        <div className="text-3xl font-bold text-amber-600 mb-2">
+                                            {difference > 0 ? '+' : ''}{formatMoney(Math.abs(difference))}
+                                        </div>
+                                        <div className="text-sm text-slate-600">
+                                            {difference > 0 ? 'Official pay is higher' : 'Your calculation is higher'}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        
+                        {/* Comparison Grid */}
+                        {hasData && (
+                            <div className="grid grid-cols-2 gap-4 mt-6">
+                                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">Your Calculation</div>
+                                    <div className="text-2xl font-bold text-teal-600">{formatMoney(myCalculatedTotal)}</div>
+                                    <div className="text-xs text-slate-400 mt-1">{myTotalHours.toFixed(1)} hours tracked</div>
+                                </div>
+                                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">Official Payroll</div>
+                                    <div className="text-2xl font-bold text-slate-700">{formatMoney(officialTotal)}</div>
+                                    <div className="text-xs text-slate-400 mt-1">{officialTotalHours.toFixed(1)} hours paid</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* ANALYTICS SECTION */}
+                    {payPeriods.length > 0 && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Icons.TrendingUp className="w-5 h-5 text-teal-500"/> 
+                                Pay Trends & Analytics
+                            </h3>
+                            
+                            {/* Pay Period History */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-semibold text-slate-600 mb-3">Recent Pay Periods</h4>
+                                <div className="space-y-2">
+                                    {payPeriods.map((period, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                            <div className="flex-1">
+                                                <div className="text-xs text-slate-500">
+                                                    {new Date(period.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(period.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                </div>
+                                                <div className="text-xs text-slate-400 mt-0.5">{period.totalHours.toFixed(1)}h @ ${period.avgRate.toFixed(2)}/hr avg</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-lg font-bold text-slate-700">{formatMoney(period.totalPay)}</div>
+                                                {idx === payPeriods.length - 1 && (
+                                                    <span className="text-[10px] text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full font-bold">Latest</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Pay Code Breakdown */}
+                            {codeBreakdown.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-slate-600 mb-3">Top Pay Codes</h4>
+                                    <div className="space-y-2">
+                                        {codeBreakdown.map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-3">
+                                                <div className="w-16 text-xs font-bold text-slate-700 truncate" title={item.code}>{item.code}</div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                                                            <div className="bg-teal-500 h-full" style={{ width: `${item.percentage}%` }}></div>
+                                                        </div>
+                                                        <span className="text-xs font-bold text-slate-600 w-12 text-right">{item.percentage}%</span>
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-400">{item.hours.toFixed(1)}h • {formatMoney(item.pay)}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* PAY RATE ANALYSIS */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <Icons.Search className="w-4 h-4 text-teal-500"/> 
+                            Pay Rate Analysis
+                        </h3>
+                        <p className="text-xs text-slate-500 mb-3">Orange rows indicate a code was paid at multiple different rates (e.g. mid-period raise or error).</p>
+                        {Object.keys(payRateAnalysis).length === 0 ? (
+                            <p className="text-slate-400 text-xs italic">Import PAR to see data.</p>
+                        ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             {Object.keys(payRateAnalysis).sort().map(code => {
                                 const data = payRateAnalysis[code];
@@ -1445,31 +2088,59 @@
                                 return (
                                     <div key={code} className={`p-2 rounded border text-xs ${rates.length > 1 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
                                         <div className="font-bold text-slate-700 truncate" title={code}>{code}</div>
-                                        <div className="flex justify-between mt-1"><span className="text-slate-500">Rate:</span><span className={`font-mono font-bold ${rates.length > 1 ? 'text-amber-600' : 'text-slate-600'}`}>{rates.map(r => `$${r.toFixed(2)}`).join(', ')}</span></div>
-                                        <div className="flex justify-between mt-0.5 text-[10px] text-slate-400"><span>Total Hrs: {data.totalHours.toFixed(2)}</span></div>
+                                            <div className="flex justify-between mt-1">
+                                                <span className="text-slate-500">Rate:</span>
+                                                <span className={`font-mono font-bold ${rates.length > 1 ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                    {rates.map(r => `$${r.toFixed(2)}`).join(', ')}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between mt-0.5 text-[10px] text-slate-400">
+                                                <span>Total Hrs: {data.totalHours.toFixed(2)}</span>
+                                            </div>
                                     </div>
                                 );
                             })}
                         </div>
                     )}
                 </div>
-                <div className="bg-white p-4 rounded shadow border border-slate-200">
-                    <h3 className="font-bold mb-4">Raw Report Data</h3>
-                    {Object.keys(payrollReport).length === 0 ? <p className="text-slate-400">No data.</p> : (
-                        <div className="space-y-4">
+                    
+                    {/* RAW DATA - Collapsible */}
+                    {Object.keys(payrollReport).length > 0 && (
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <button 
+                                onClick={() => setShowRawData(!showRawData)}
+                                className="w-full flex items-center justify-between text-left font-bold text-slate-700 hover:text-teal-600 transition-colors"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Icons.Database className="w-4 h-4"/>
+                                    Raw Payroll Data
+                                </span>
+                                {showRawData ? <Icons.ChevronUp className="w-5 h-5"/> : <Icons.ChevronDown className="w-5 h-5"/>}
+                            </button>
+                            
+                            {showRawData && (
+                                <div className="mt-4 space-y-4 animate-in slide-in-from-top-2">
                             {Object.keys(payrollReport).sort().map(d => (
                                 <div key={d} className="border-b pb-2">
-                                    <div className="flex justify-between font-bold text-sm bg-slate-50 p-2"><span>{d}</span><span>{formatMoney(payrollReport[d].totalPay)}</span></div>
+                                            <div className="flex justify-between font-bold text-sm bg-slate-50 p-2 rounded">
+                                                <span>{new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                                <span>{formatMoney(payrollReport[d].totalPay)}</span>
+                                            </div>
                                     {payrollReport[d].entries.map((e,i) => (
-                                        <div key={i} className="flex justify-between text-xs px-2 py-1"><span>{e.code}</span><span className="font-mono">{e.hours}h | {formatMoney(e.amount)}</span></div>
+                                                <div key={i} className="flex justify-between text-xs px-2 py-1 hover:bg-slate-50">
+                                                    <span className="text-slate-600">{e.code}</span>
+                                                    <span className="font-mono text-slate-700">{e.hours}h • {formatMoney(e.amount)}</span>
+                                                </div>
                                     ))}
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
+                    )}
             </div>
         );
+        };
 
         /**
          * Release Notes View - Displays version history and changelog
@@ -1477,10 +2148,31 @@
          */
         const ReleaseNotesView = () => (
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-indigo-500" /> Release Notes</h2>
-                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.7</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-teal-500" /> Release Notes</h2>
+                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                     <div>
+                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.9</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
+                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                              <li><strong>🐛 Critical Fix - PAR Parsing:</strong> Completely rewrote Workday PAR import logic to recognize ALL pay codes including: Regular Unsch, NF Holdover, Overtime Unsch, NF No Break, Train Reg/OT, Imputed Income DP Medical, Meeting, and more. Now uses dual-method parsing (FLSA trigger + direct code matching) with support for colon-separated formats like "Medical.. : Regular".</li>
+                              <li><strong>📋 Import Feedback:</strong> After importing PAR, you now see exactly which pay codes were detected (e.g., "Regular, Overtime, NF No Break") so you can verify nothing was missed. Helps catch parsing issues immediately.</li>
+                              <li><strong>🔧 Expanded Code Library:</strong> Added 20+ known pay codes to recognition system including Standby, Night Differential, Bereavement, and various training codes. Parser now looks 8 lines ahead instead of 6 for better number detection.</li>
+                              <li><strong>✅ Duplicate Prevention:</strong> Smart logic now prevents the same entry from being imported twice if you accidentally paste the same data multiple times.</li>
+                              <li><strong>💡 Why This Matters:</strong> Many users were missing critical pay codes (especially "No Break" bonuses and training pay) because the old parser was too rigid. This fix ensures EVERY line from Workday gets captured correctly, preventing false discrepancy alerts.</li>
+                         </ul>
+                     </div>
+                     <div>
+                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
+                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                              <li><strong>🎉 Welcome Modal:</strong> First-time users now see beautiful onboarding explaining what the app does, why it matters (Mando errors, missing holiday pay), and how to use it. Never shows again after first visit.</li>
+                              <li><strong>⚡ Workday Bookmarklet:</strong> ONE-CLICK data import! Drag the "Import to CoCo SL" button to your bookmarks bar, click it on Workday, and data auto-loads. Reduces 8 steps to 2 clicks - MASSIVE time saver!</li>
+                              <li><strong>📊 Progress Checklist:</strong> Dashboard now shows setup status at the top - see at a glance what's done (✅ Base Rate, ✅ Timecard, ✅ Payroll Report, ✅ Validated) and what's needed with quick "Import now" links.</li>
+                              <li><strong>✏️ Quick Manual Entry:</strong> Mobile-friendly shift logging! Toggle to "Quick Manual Entry" mode and add shifts in 15 seconds - perfect for logging right after your shift in the ambulance. Date picker, time pickers, checkboxes for Mando/Holiday/Missed Meal/Holdover.</li>
+                              <li><strong>🐛 Critical Fix - Workday:</strong> All instructions now correctly reference WORKDAY (was saying ServiceNow). Links and tutorial text updated to match actual system you use.</li>
+                              <li><strong>📱 Mobile Optimization:</strong> Manual entry form designed for touch - large tap targets, smart defaults (7am-7pm), auto-advances to next day after adding shift.</li>
+                         </ul>
+                     </div>
+                     <div>
+                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.7</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                              <li><strong>🎯 Audit Assistant Approach:</strong> Complete UX overhaul - now focuses on what actually matters: TOTALS.</li>
                              <li><strong>✓ Clear Messaging:</strong> When totals match, you see a green banner: "Totals Match - You're Good!"</li>
@@ -1628,7 +2320,7 @@
          */
         const HelpView = ({detectedCodes, handleCopyAnonymized}) => (
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.ShieldAlert className="w-5 h-5 text-indigo-500" /> Help & Feedback</h2>
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.ShieldAlert className="w-5 h-5 text-teal-500" /> Help & Feedback</h2>
                 <div className="mb-6">
                     <h3 className="font-bold text-slate-700 mb-2">Roadmap</h3>
                     <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
@@ -1836,6 +2528,91 @@
                             )}
                         </div>
                     </div>
+                    
+                    {/* Progress Checklist - NO PRINT */}
+                    <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-xl p-4 shadow-sm no-print">
+                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <Icons.CheckCircle className="w-5 h-5 text-teal-600"/>
+                            Setup Progress
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* Base Rate */}
+                            <div className={`flex items-center gap-3 p-3 rounded-lg ${settings.baseRate > 0 ? 'bg-emerald-100 border border-emerald-300' : 'bg-slate-100 border border-slate-300'}`}>
+                                {settings.baseRate > 0 ? (
+                                    <Icons.CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0"/>
+                                ) : (
+                                    <Icons.AlertCircle className="w-5 h-5 text-slate-400 flex-shrink-0"/>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className={`font-bold text-sm ${settings.baseRate > 0 ? 'text-emerald-800' : 'text-slate-600'}`}>
+                                        Base Rate {settings.baseRate > 0 ? `($${settings.baseRate}/hr)` : 'Not Set'}
+                                    </div>
+                                    {settings.baseRate === 0 && (
+                                        <button onClick={() => setActiveTab('import')} className="text-xs text-teal-600 hover:underline">Set now →</button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Timecard Import */}
+                            <div className={`flex items-center gap-3 p-3 rounded-lg ${shifts.length > 0 ? 'bg-emerald-100 border border-emerald-300' : 'bg-amber-100 border border-amber-300'}`}>
+                                {shifts.length > 0 ? (
+                                    <Icons.CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0"/>
+                                ) : (
+                                    <Icons.AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0"/>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className={`font-bold text-sm ${shifts.length > 0 ? 'text-emerald-800' : 'text-amber-800'}`}>
+                                        Timecard {shifts.length > 0 ? `(${shifts.length} shifts)` : 'Needed'}
+                                    </div>
+                                    {shifts.length === 0 && (
+                                        <button onClick={() => setActiveTab('import')} className="text-xs text-teal-600 hover:underline">Import now →</button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Payroll Report */}
+                            <div className={`flex items-center gap-3 p-3 rounded-lg ${Object.keys(payrollReport).length > 0 ? 'bg-emerald-100 border border-emerald-300' : 'bg-amber-100 border border-amber-300'}`}>
+                                {Object.keys(payrollReport).length > 0 ? (
+                                    <Icons.CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0"/>
+                                ) : (
+                                    <Icons.AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0"/>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className={`font-bold text-sm ${Object.keys(payrollReport).length > 0 ? 'text-emerald-800' : 'text-amber-800'}`}>
+                                        Payroll Report {Object.keys(payrollReport).length > 0 ? `(${Object.keys(payrollReport).length} days)` : 'Needed'}
+                                    </div>
+                                    {Object.keys(payrollReport).length === 0 && (
+                                        <button onClick={() => setActiveTab('import')} className="text-xs text-teal-600 hover:underline">Import now →</button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Validation Status */}
+                            <div className={`flex items-center gap-3 p-3 rounded-lg ${shifts.length > 0 && Object.keys(payrollReport).length > 0 ? (Math.abs(diffTotal) < PAY_TOLERANCE ? 'bg-emerald-100 border border-emerald-300' : 'bg-red-100 border border-red-300') : 'bg-slate-100 border border-slate-300'}`}>
+                                {shifts.length > 0 && Object.keys(payrollReport).length > 0 ? (
+                                    Math.abs(diffTotal) < PAY_TOLERANCE ? (
+                                        <Icons.CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0"/>
+                                    ) : (
+                                        <Icons.AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0"/>
+                                    )
+                                ) : (
+                                    <Icons.Clock className="w-5 h-5 text-slate-400 flex-shrink-0"/>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className={`font-bold text-sm ${shifts.length > 0 && Object.keys(payrollReport).length > 0 ? (Math.abs(diffTotal) < PAY_TOLERANCE ? 'text-emerald-800' : 'text-red-800') : 'text-slate-600'}`}>
+                                        {shifts.length > 0 && Object.keys(payrollReport).length > 0 ? (
+                                            Math.abs(diffTotal) < PAY_TOLERANCE ? 'Validated ✓' : `Discrepancy: ${formatMoney(Math.abs(diffTotal))}`
+                                        ) : (
+                                            'Pending Imports'
+                                        )}
+                                    </div>
+                                    {shifts.length === 0 || Object.keys(payrollReport).length === 0 ? (
+                                        <div className="text-xs text-slate-500">Complete imports first</div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 
                      {showGuide && (
                         <div className="bg-white rounded-lg shadow-sm border p-3 flex justify-between items-center text-xs animate-in slide-in-from-top-1 no-print">
@@ -1861,7 +2638,7 @@
                             {actualTotalPay !== null ? (
                                  <div className="text-center md:text-left relative pl-6 md:border-l border-slate-100">
                                     <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Actual Pay</div>
-                                    <div className="text-3xl font-black text-indigo-600">{formatMoney(actualTotalPay)}</div>
+                                    <div className="text-3xl font-black text-teal-600">{formatMoney(actualTotalPay)}</div>
                                     <div className="text-xs text-slate-400">From Payroll Report</div>
                                 </div>
                             ) : (
@@ -1929,7 +2706,7 @@
                                     {/* Settings Button */}
                                     <button 
                                         onClick={() => setIsSettingsOpen(!isSettingsOpen)} 
-                                        className="p-2.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-indigo-500 border border-slate-200"
+                                        className="p-2.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-teal-500 border border-slate-200"
                                         title="Advanced Settings"
                                     >
                                         <Icons.Settings className="w-4 h-4" />
@@ -1961,7 +2738,7 @@
                                     <span className="text-white font-bold">
                                         {new Date(g.startDate+432e5).toLocaleDateString()} - {new Date(g.endDate+432e5).toLocaleDateString()}
                                     </span>
-                            </div>
+                                </div>
                                 <span className="text-white font-bold text-lg">{formatMoney(g.totalPay)}</span>
                             </div>
 
@@ -2036,6 +2813,11 @@
             
             const [showAI, setShowAI] = useState(false);
             const [aiCalculatedData, setAiCalculatedData] = useState(null);
+            
+            // Welcome Modal for first-time users
+            const [showWelcome, setShowWelcome] = useState(() => {
+                return !localStorage.getItem('hasVisited');
+            });
 
             useEffect(() => { localStorage.setItem('shifts', JSON.stringify(shifts)); }, [shifts]);
             useEffect(() => { localStorage.setItem('payrollReport', JSON.stringify(payrollReport)); }, [payrollReport]);
@@ -2044,28 +2826,32 @@
             
             const handleImport = () => {
                 try {
-                 if (importMode === 'timecard') {
-                    const res = parseTimecardHelper(importText);
-                    if(res.success) {
-                        setShifts(prev => { const newS = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime)); return [...prev, ...newS]; });
-                        if(res.minDate) {
-                             const minD = new Date(res.minDate + 'T12:00:00'); 
-                             const dDiff = minD.getDate() - minD.getDay(); 
-                             const anchor = new Date(minD); anchor.setDate(dDiff);
-                             setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
-                        }
+                    if (importMode === 'timecard') {
+                        const res = parseTimecardHelper(importText);
+                        if(res.success) {
+                            setShifts(prev => { const newS = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime)); return [...prev, ...newS]; });
+                            if(res.minDate) {
+                                 const minD = new Date(res.minDate + 'T12:00:00'); 
+                                 const dDiff = minD.getDate() - minD.getDay(); 
+                                 const anchor = new Date(minD); anchor.setDate(dDiff);
+                                 setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
+                            }
                             setImportText(''); setActiveTab('calculator'); alert(`✅ Imported ${res.shifts.length} shifts.`);
                         } else {
                             alert('❌ No dates found in the pasted text.\n\nTip: Make sure you copied from Kronos in LIST VIEW, not Grid View.');
                         }
-                 } else {
-                    const res = parsePayrollReportHelper(importText, payrollReport);
+                     } else {
+                         const res = parsePayrollReportHelper(importText, payrollReport);
                         if(res.success) { 
                             setPayrollReport(res.data); 
-                            setDetectedCodes([...new Set([...detectedCodes, ...Object.values(res.data).flatMap(d => d.entries.map(e => e.code))])]); 
+                            const newCodes = Object.values(res.data).flatMap(d => d.entries.map(e => e.code));
+                            setDetectedCodes([...new Set([...detectedCodes, ...newCodes])]); 
                             setImportText(''); 
                             setActiveTab('calculator'); 
-                            alert(`✅ Imported ${res.count} payroll entries.`);
+                            
+                            // Show what was imported
+                            const uniqueCodes = [...new Set(newCodes)];
+                            alert(`✅ Imported ${res.count} payroll entries!\n\n📋 Pay codes found:\n${uniqueCodes.join('\n')}\n\nDates: ${res.dates.length} days`);
                         } else {
                             alert('❌ No payroll report entries found.\n\nTip: Make sure you selected "All" items per page and copied the full page text.');
                         }
@@ -2073,7 +2859,7 @@
                 } catch (error) {
                     console.error('Import error:', error);
                     alert(`❌ Import failed: ${error.message}\n\nPlease check the browser console for details.`);
-                 }
+                }
             };
             
             const handleCopyAnonymized = () => { navigator.clipboard.writeText(JSON.stringify({shifts, codes: detectedCodes})); alert("Copied!"); };
@@ -2092,6 +2878,47 @@
                 return analysis;
             }, [payrollReport]);
             
+            // Calculate totals for Report page (using SAME logic as Dashboard)
+            const calculatedTotals = useMemo(() => {
+                const sorted = [...shifts].sort((a, b) => new Date(`${a.date}T${a.startTime}`) - new Date(`${b.date}T${b.startTime}`));
+                let grandTotalPay = 0;
+                let totalHours = 0;
+                const getWeekStart = (d) => {
+                    const date = new Date(d);
+                    const diff = date.getDate() - date.getDay() + (date.getDay() < settings.workWeekStartDay ? -7 : 0);
+                    date.setDate(diff); date.setHours(0,0,0,0); return date.getTime();
+                };
+                let weeklyAccumulator = 0;
+                let currentWeekStart = null;
+                
+                sorted.forEach(shift => {
+                    const s = new Date(`${shift.date}T${shift.startTime}`);
+                    const ws = getWeekStart(s);
+                    if (currentWeekStart !== ws) { weeklyAccumulator = 0; currentWeekStart = ws; }
+                    
+                    const hrs = parseFloat(shift.totalHours) || 0;
+                    totalHours += hrs;
+                    let rate = parseFloat(shift.payRate) || settings.baseRate;
+                    let computedHours = hrs;
+                    
+                    if (shift.mando || shift.holdover) computedHours = hrs * 2;
+                    
+                    const normalHours = Math.min(computedHours, Math.max(0, settings.otThreshold - weeklyAccumulator));
+                    const otHours = Math.max(0, computedHours - normalHours);
+                    const basePay = normalHours * rate;
+                    const otPay = otHours * rate * 1.5;
+                    grandTotalPay += basePay + otPay;
+                    
+                    weeklyAccumulator += computedHours;
+                    
+                    // Bonuses
+                    if (shift.missedMeal) grandTotalPay += settings.mealBonusHours * rate;
+                    if (shift.sick) grandTotalPay += hrs * rate;
+                });
+                
+                return { grandTotalPay, totalHours };
+            }, [shifts, settings]);
+            
             const handleOpenAI = (calcData) => {
                 setAiCalculatedData(calcData);
                 setShowAI(true);
@@ -2099,24 +2926,45 @@
 
             return (
                 <ErrorBoundary>
+                    {/* Welcome Modal for First-Time Users */}
+                    {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
+                    
                     <div className="max-w-6xl mx-auto space-y-6 pb-safe">
                         <div className="bg-slate-900 text-white p-4 sticky top-0 z-20 shadow-lg">
                             <div className="flex justify-between items-center">
-                                 <h1 className="font-bold flex gap-2"><Icons.FileText className="text-emerald-400"/> CoCo ShadowLedger</h1>
-                                 <div className="flex bg-slate-800 rounded p-1">
-                                    <button onClick={() => setActiveTab('import')} className={`px-3 py-1 rounded text-xs ${activeTab==='import'?'bg-slate-600 text-white':'text-slate-400'}`}>Import</button>
-                                    <button onClick={() => setActiveTab('calculator')} className={`px-3 py-1 rounded text-xs ${activeTab==='calculator'?'bg-slate-600 text-white':'text-slate-400'}`}>Dashboard</button>
-                                    <button onClick={() => setActiveTab('report')} className={`px-3 py-1 rounded text-xs ${activeTab==='report'?'bg-slate-600 text-white':'text-slate-400'}`}>Report</button>
-                                    <button onClick={() => setActiveTab('notes')} className={`px-3 py-1 rounded text-xs ${activeTab==='notes'?'bg-slate-600 text-white':'text-slate-400'}`}>Release Notes</button>
-                                    <button onClick={() => setActiveTab('feedback')} className={`px-3 py-1 rounded text-xs ${activeTab==='feedback'?'bg-slate-600 text-white':'text-slate-400'}`}>Help</button>
+                                 {/* Brand Logo & Title */}
+                                 <div className="flex items-center gap-3">
+                                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                         <path d="M16 2L6 6V14C6 20.5 10 26.5 16 29C22 26.5 26 20.5 26 14V6L16 2Z" fill="#14B8A6"/>
+                                         <path d="M11 16L14 19L21 11" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                     </svg>
+                                     <div className="hidden sm:block">
+                                         <h1 className="font-bold text-base leading-tight">CoCo ShadowLedger</h1>
+                                          <p className="text-xs text-teal-400">v8.9 (Current)</p>
+                                 </div>
+                                     <h1 className="sm:hidden font-bold">CoCo SL</h1>
+                            </div>
+                                 {/* Tab Navigation */}
+                                 <div className="flex bg-slate-800 rounded-lg p-1 gap-1">
+                                    <button onClick={() => setActiveTab('import')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab==='import'?'bg-teal-500 text-white shadow-sm':'text-slate-400 hover:text-slate-200'}`}>Import</button>
+                                    <button onClick={() => setActiveTab('calculator')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab==='calculator'?'bg-teal-500 text-white shadow-sm':'text-slate-400 hover:text-slate-200'}`}>
+                                        <span className="hidden md:inline">Dashboard</span>
+                                        <span className="md:hidden">Dash</span>
+                                    </button>
+                                    <button onClick={() => setActiveTab('report')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab==='report'?'bg-teal-500 text-white shadow-sm':'text-slate-400 hover:text-slate-200'}`}>Report</button>
+                                    <button onClick={() => setActiveTab('notes')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab==='notes'?'bg-teal-500 text-white shadow-sm':'text-slate-400 hover:text-slate-200'}`}>
+                                        <span className="hidden md:inline">Release Notes</span>
+                                        <span className="md:hidden">Notes</span>
+                                    </button>
+                                    <button onClick={() => setActiveTab('feedback')} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab==='feedback'?'bg-teal-500 text-white shadow-sm':'text-slate-400 hover:text-slate-200'}`}>Help</button>
                                  </div>
                             </div>
-                            <div className="text-xs text-slate-400 mt-1">Audit your EMS shifts against your paycheck in seconds.</div>
+                            <div className="text-xs text-slate-400 mt-2">🛡️ Protect your paycheck - Audit your EMS shifts in seconds</div>
                         </div>
 
                         <div className="p-4">
                             {activeTab === 'import' && <ImportView importMode={importMode} setImportMode={setImportMode} importText={importText} setImportText={setImportText} handleImport={handleImport} settings={settings} setSettings={setSettings} />}
-                            {activeTab === 'report' && <ReportView payrollReport={payrollReport} payRateAnalysis={payRateAnalysis} />}
+                            {activeTab === 'report' && <ReportView payrollReport={payrollReport} payRateAnalysis={payRateAnalysis} calculatedTotals={calculatedTotals} />}
                             {activeTab === 'notes' && <ReleaseNotesView />}
                             {activeTab === 'feedback' && <HelpView detectedCodes={detectedCodes} handleCopyAnonymized={handleCopyAnonymized} />}
                             {activeTab === 'calculator' && 
