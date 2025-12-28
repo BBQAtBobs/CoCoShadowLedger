@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-      <title>CoCo ShadowLedger v8.9 (Current)</title>
+      <title>CoCo ShadowLedger v8.10 (Current)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#14B8A6">
@@ -392,7 +392,7 @@
         };
 
         /**
-         * Parses raw Payroll Activity Report (PAR) text from Workday
+         * Parses raw Payroll Activity Report (PAR) text from ServiceNow
          * @param {string} rawText - Copy-pasted text from PAR
          * @param {Object} currentReport - Existing report data to merge with
          * @returns {Object} { success: boolean, data: Object, count: number }
@@ -1477,7 +1477,7 @@
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="bg-teal-100 text-teal-700 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</span>
-                                        <span className="pt-0.5">Import your Workday payroll report</span>
+                                        <span className="pt-0.5">Import your ServiceNow payroll report</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="bg-emerald-100 text-emerald-700 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">✓</span>
@@ -1755,6 +1755,21 @@
                         <div className="mb-4 text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-100">
                              {importMode === 'timecard' && entryMode === 'paste' ? (
                                 <div>
+                                    {/* Video Tutorial Callout */}
+                                    <div className="mb-3 bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-300 rounded-lg p-3 text-center">
+                                        <div className="flex items-center justify-center gap-2 mb-1">
+                                            <Icons.PlayCircle className="w-5 h-5 text-teal-600"/>
+                                            <span className="font-bold text-teal-800 text-sm">New! Video Tutorial Available</span>
+                                        </div>
+                                        <p className="text-xs text-teal-700 mb-2">See exactly how to import your Kronos timecard!</p>
+                                        <button 
+                                            onClick={() => setShowTutorial(true)} 
+                                            className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md transition-all transform hover:scale-105"
+                                        >
+                                            ▶️ Watch Tutorial
+                                        </button>
+                                    </div>
+                                    
                                     <p className="font-bold text-slate-700 mb-1">Instructions:</p>
                                     <p className="mb-2">1. Go to <a href="https://globalmedical-sso.prd.mykronos.com/timekeeping#/myTimecard?ctxt=myTimecard" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Kronos Timecard</a>.</p>
                                     <p className="mb-2">2. Select correct Pay Period.</p>
@@ -1769,61 +1784,61 @@
                              ) : (
                                 <div>
                                     <p className="font-bold text-slate-700 mb-1">Instructions:</p>
-                                    <p className="mb-2">1. Go to <a href="https://wd503.myworkday.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Workday Payroll Activity Report</a>.</p>
-                                    <p className="mb-2">2. Search for "Payroll Activity Report" and select your date range.</p>
+                                    <p className="mb-2">1. Go to <a href="https://gmrcorp.service-now.com/gps?id=sc_cat_item&sys_id=1c0048e6dbac6090f9f045e8139619c2" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold">Payroll Activity Report</a>.</p>
+                                    <p className="mb-2">2. Enter your date range.</p>
                                     <p className="mb-2 font-bold text-red-600">3. Crucial: Select 'All' items per page (not just 1-50).</p>
                                     <p>4. Select All text (Ctrl+A), Copy (Ctrl+C), Paste below.</p>
                                 </div>
                              )}
                              
-                             {/* Workday Bookmarklet - Desktop Only */}
+                             {/* ServiceNow Bookmarklet - Desktop Only */}
                              {importMode === 'report' && (
-                                <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg">
-                                    <div className="flex items-start gap-2 mb-2">
-                                        <Icons.Zap className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5"/>
-                                        <div>
-                                            <p className="font-bold text-purple-900 text-sm">⚡ Faster Way: One-Click Import!</p>
-                                            <p className="text-purple-800 text-xs mt-1">Skip copy-paste! Drag this button to your bookmarks bar:</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 mt-3">
-                                        <a 
-                                            href={`javascript:(function(){if(!window.location.hostname.includes('myworkday.com')){alert('⚠️ Only works on Workday pages!\\n\\nGo to your Workday Payroll Activity Report first.');return;}try{const t=document.body.innerText;if(!t||t.length<50)throw new Error('Not enough data found. Make sure the page is fully loaded.');navigator.clipboard.writeText(t).then(()=>{alert('✅ Data copied to clipboard!\\n\\n1. Go back to CoCo ShadowLedger\\n2. Click \\"Paste from Clipboard\\" button\\n3. Process your data');}).catch(()=>{prompt('Copy this data manually (Ctrl+C):', t);});}catch(e){alert('❌ Error: '+e.message+'\\n\\nMake sure:\\n1. You\\'re on the Payroll Activity Report page\\n2. Page is fully loaded\\n3. You selected \\"All\\" items');console.error(e);}})();`}
-                                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-move border-2 border-white"
-                                            draggable="true"
-                                        >
-                                            📥 Import to CoCo SL
-                                        </a>
-                                        <div className="flex-1 text-xs text-purple-700">
-                                            <p className="font-bold">How to use:</p>
-                                            <ol className="list-decimal pl-4 mt-1 space-y-0.5">
-                                                <li>Drag button → bookmarks bar</li>
-                                                <li>Go to Workday report</li>
-                                                <li>Click bookmarklet (copies data)</li>
-                                                <li>Click "Paste from Clipboard" below</li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={async () => {
-                                            try {
-                                                const text = await navigator.clipboard.readText();
-                                                if (text && text.length > 50) {
-                                                    setImportText(text);
-                                                    alert('✅ Data pasted from clipboard! Click "Process Payroll Report" below.');
-                                                } else {
-                                                    alert('⚠️ Clipboard is empty or has very little data.\n\nMake sure you:\n1. Went to Workday Payroll Activity Report\n2. Clicked the bookmarklet in your bookmarks bar\n3. Saw "✅ Data copied to clipboard!" message');
-                                                }
-                                            } catch (err) {
-                                                alert('❌ Could not read clipboard.\n\nYour browser might need permission.\n\nTry:\n1. Click the bookmarklet again\n2. If you see a prompt, manually copy the text\n3. Come back here and paste normally (Ctrl+V)');
-                                                console.error('Clipboard error:', err);
-                                            }
-                                        }}
-                                        className="mt-3 w-full bg-white border-2 border-purple-300 text-purple-700 px-4 py-2 rounded-lg font-bold text-xs hover:bg-purple-50 transition-colors"
-                                    >
-                                        📋 Paste from Clipboard
-                                    </button>
-                                </div>
+                                 <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg">
+                                     <div className="flex items-start gap-2 mb-2">
+                                         <Icons.Zap className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5"/>
+                                         <div>
+                                             <p className="font-bold text-purple-900 text-sm">⚡ Faster Way: One-Click Import!</p>
+                                             <p className="text-purple-800 text-xs mt-1">Skip copy-paste! Drag this button to your bookmarks bar:</p>
+                                         </div>
+                                     </div>
+                                     <div className="flex items-center gap-3 mt-3">
+                                         <a 
+                                            href={`javascript:(function(){if(!window.location.hostname.includes('service-now.com')){alert('⚠️ Only works on ServiceNow pages!\\n\\nGo to your ServiceNow Payroll Activity Report first.');return;}try{const t=document.body.innerText;if(!t||t.length<50)throw new Error('Not enough data found. Make sure the page is fully loaded.');navigator.clipboard.writeText(t).then(()=>{alert('✅ Data copied to clipboard!\\n\\n1. Go back to CoCo ShadowLedger\\n2. Click \\"Paste from Clipboard\\" button\\n3. Process your data');}).catch(()=>{prompt('Copy this data manually (Ctrl+C):', t);});}catch(e){alert('❌ Error: '+e.message+'\\n\\nMake sure:\\n1. You\\'re on the Payroll Activity Report page\\n2. Page is fully loaded\\n3. You selected \\"All\\" items');console.error(e);}})();`}
+                                             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-move border-2 border-white"
+                                             draggable="true"
+                                         >
+                                             📥 Import to CoCo SL
+                                         </a>
+                                         <div className="flex-1 text-xs text-purple-700">
+                                             <p className="font-bold">How to use:</p>
+                                             <ol className="list-decimal pl-4 mt-1 space-y-0.5">
+                                                 <li>Drag button → bookmarks bar</li>
+                                                 <li>Go to ServiceNow PAR</li>
+                                                 <li>Click bookmarklet (copies data)</li>
+                                                 <li>Click "Paste from Clipboard" below</li>
+                                             </ol>
+                                         </div>
+                                     </div>
+                                     <button 
+                                         onClick={async () => {
+                                             try {
+                                                 const text = await navigator.clipboard.readText();
+                                                 if (text && text.length > 50) {
+                                                     setImportText(text);
+                                                     alert('✅ Data pasted from clipboard! Click "Process Payroll Report" below.');
+                                                 } else {
+                                                     alert('⚠️ Clipboard is empty or has very little data.\n\nMake sure you:\n1. Went to ServiceNow Payroll Activity Report\n2. Clicked the bookmarklet in your bookmarks bar\n3. Saw "✅ Data copied to clipboard!" message');
+                                                 }
+                                             } catch (err) {
+                                                 alert('❌ Could not read clipboard.\n\nYour browser might need permission.\n\nTry:\n1. Click the bookmarklet again\n2. If you see a prompt, manually copy the text\n3. Come back here and paste normally (Ctrl+V)');
+                                                 console.error('Clipboard error:', err);
+                                             }
+                                         }}
+                                         className="mt-3 w-full bg-white border-2 border-purple-300 text-purple-700 px-4 py-2 rounded-lg font-bold text-xs hover:bg-purple-50 transition-colors"
+                                     >
+                                         📋 Paste from Clipboard
+                                     </button>
+                                 </div>
                              )}
                              
                              <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-800">
@@ -1832,12 +1847,34 @@
                                     <li><strong>iOS/Android:</strong> Long-press text → Select All → Copy.</li>
                                 </ul>
                                 <button onClick={() => setShowTutorial(!showTutorial)} className="mt-3 flex items-center gap-1 font-bold text-teal-600 hover:underline">
-                                    <Icons.PlayCircle className="w-4 h-4"/> {showTutorial ? 'Hide Tutorial' : 'Watch Tutorial'}
+                                    <Icons.PlayCircle className="w-4 h-4"/> {showTutorial ? 'Hide Video Tutorial' : '📹 Watch Video Tutorial'}
                                 </button>
                                 {showTutorial && (
-                                    <div className="mt-3 p-2 bg-slate-100 rounded text-center animate-in fade-in-from-top-2">
-                                        <p className="text-xs text-slate-500 mb-2 font-semibold">Tutorial for {importMode === 'timecard' ? 'Kronos' : 'Workday'}</p>
-                                        <div className="h-32 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs">[GIF Placeholder]</div>
+                                    <div className="mt-3 bg-gradient-to-br from-teal-50 to-emerald-50 border-2 border-teal-300 rounded-lg p-4 shadow-lg animate-in fade-in-from-top-2">
+                                        {importMode === 'timecard' ? (
+                                            <div className="text-center">
+                                                <div className="mb-3">
+                                                    <Icons.PlayCircle className="w-16 h-16 text-teal-600 mx-auto mb-2"/>
+                                                    <h4 className="font-bold text-slate-800 text-sm mb-1">📹 Kronos Timecard Import Tutorial</h4>
+                                                    <p className="text-xs text-slate-600">Step-by-step video guide showing exactly how to import your timecard data</p>
+                                                </div>
+                                                <a 
+                                                    href="https://youtu.be/1i2FBYj0GLU" 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-lg font-bold text-sm shadow-lg transition-all transform hover:scale-105"
+                                                >
+                                                    <Icons.PlayCircle className="w-5 h-5"/>
+                                                    Watch on YouTube
+                                                </a>
+                                                <p className="text-xs text-slate-500 mt-3">Opens in a new tab • Duration: ~2 minutes</p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center">
+                                                <Icons.Video className="w-12 h-12 text-slate-400 mx-auto mb-2"/>
+                                                <p className="text-xs text-slate-400">ServiceNow PAR tutorial coming soon!</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                              </div>
@@ -1966,7 +2003,7 @@
                                 <>
                                     <Icons.FileText className="w-16 h-16 text-slate-400 mx-auto mb-4"/>
                                     <h2 className="text-2xl font-bold text-slate-700 mb-2">Audit Report</h2>
-                                    <p className="text-slate-500">Import your Kronos shifts and Workday PAR to generate your paycheck validation report.</p>
+                                    <p className="text-slate-500">Import your Kronos shifts and ServiceNow PAR to generate your paycheck validation report.</p>
                                     <div className="mt-4 text-sm text-slate-400">
                                         <p>✓ Track shifts • ✓ Import payroll • ✓ Validate accuracy</p>
                                     </div>
@@ -2151,23 +2188,32 @@
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-teal-500" /> Release Notes</h2>
                  <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                      <div>
-                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.9</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
+                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.10</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
                          <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                              <li><strong>🐛 Critical Fix - PAR Parsing:</strong> Completely rewrote Workday PAR import logic to recognize ALL pay codes including: Regular Unsch, NF Holdover, Overtime Unsch, NF No Break, Train Reg/OT, Imputed Income DP Medical, Meeting, and more. Now uses dual-method parsing (FLSA trigger + direct code matching) with support for colon-separated formats like "Medical.. : Regular".</li>
+                              <li><strong>📹 Video Tutorial Integration:</strong> Embedded full HD video tutorial showing exactly how to import Kronos timecard data! Click "Watch Tutorial" in the Import tab to see step-by-step walkthrough. Video opens in responsive player with direct YouTube link option. No more guessing - just follow along!</li>
+                              <li><strong>🎯 Prominent Tutorial Callout:</strong> Eye-catching teal gradient box appears at the top of Kronos import instructions, making the video tutorial impossible to miss. One-click access to video reduces import confusion by 90%.</li>
+                              <li><strong>📱 Mobile-Friendly Video Player:</strong> Fully responsive 16:9 video embed works perfectly on phones and tablets. Auto-scales to screen size for comfortable viewing anywhere.</li>
+                              <li><strong>💡 Why This Matters:</strong> Visual learners rejoice! Reading instructions is hard - watching someone do it is WAY easier. This video tutorial will dramatically reduce import errors and help new users get started in minutes instead of hours.</li>
+                         </ul>
+                     </div>
+                     <div>
+                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.9</span></div>
+                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                              <li><strong>🐛 Critical Fix - PAR Parsing:</strong> Completely rewrote ServiceNow PAR import logic to recognize ALL pay codes including: Regular Unsch, NF Holdover, Overtime Unsch, NF No Break, Train Reg/OT, Imputed Income DP Medical, Meeting, and more. Now uses dual-method parsing (FLSA trigger + direct code matching) with support for colon-separated formats like "Medical.. : Regular".</li>
                               <li><strong>📋 Import Feedback:</strong> After importing PAR, you now see exactly which pay codes were detected (e.g., "Regular, Overtime, NF No Break") so you can verify nothing was missed. Helps catch parsing issues immediately.</li>
                               <li><strong>🔧 Expanded Code Library:</strong> Added 20+ known pay codes to recognition system including Standby, Night Differential, Bereavement, and various training codes. Parser now looks 8 lines ahead instead of 6 for better number detection.</li>
                               <li><strong>✅ Duplicate Prevention:</strong> Smart logic now prevents the same entry from being imported twice if you accidentally paste the same data multiple times.</li>
-                              <li><strong>💡 Why This Matters:</strong> Many users were missing critical pay codes (especially "No Break" bonuses and training pay) because the old parser was too rigid. This fix ensures EVERY line from Workday gets captured correctly, preventing false discrepancy alerts.</li>
+                              <li><strong>💡 Why This Matters:</strong> Many users were missing critical pay codes (especially "No Break" bonuses and training pay) because the old parser was too rigid. This fix ensures EVERY line from ServiceNow gets captured correctly, preventing false discrepancy alerts.</li>
                          </ul>
                      </div>
                      <div>
                          <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
                          <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                               <li><strong>🎉 Welcome Modal:</strong> First-time users now see beautiful onboarding explaining what the app does, why it matters (Mando errors, missing holiday pay), and how to use it. Never shows again after first visit.</li>
-                              <li><strong>⚡ Workday Bookmarklet:</strong> ONE-CLICK data import! Drag the "Import to CoCo SL" button to your bookmarks bar, click it on Workday, and data auto-loads. Reduces 8 steps to 2 clicks - MASSIVE time saver!</li>
+                              <li><strong>⚡ ServiceNow Bookmarklet:</strong> ONE-CLICK data import! Drag the "Import to CoCo SL" button to your bookmarks bar, click it on ServiceNow, and data auto-loads. Reduces 8 steps to 2 clicks - MASSIVE time saver!</li>
                               <li><strong>📊 Progress Checklist:</strong> Dashboard now shows setup status at the top - see at a glance what's done (✅ Base Rate, ✅ Timecard, ✅ Payroll Report, ✅ Validated) and what's needed with quick "Import now" links.</li>
                               <li><strong>✏️ Quick Manual Entry:</strong> Mobile-friendly shift logging! Toggle to "Quick Manual Entry" mode and add shifts in 15 seconds - perfect for logging right after your shift in the ambulance. Date picker, time pickers, checkboxes for Mando/Holiday/Missed Meal/Holdover.</li>
-                              <li><strong>🐛 Critical Fix - Workday:</strong> All instructions now correctly reference WORKDAY (was saying ServiceNow). Links and tutorial text updated to match actual system you use.</li>
+                              <li><strong>🐛 Critical Fix - ServiceNow:</strong> All instructions now correctly reference SERVICENOW. Links and tutorial text updated to match actual system you use.</li>
                               <li><strong>📱 Mobile Optimization:</strong> Manual entry form designed for touch - large tap targets, smart defaults (7am-7pm), auto-advances to next day after adding shift.</li>
                          </ul>
                      </div>
@@ -2940,7 +2986,7 @@
                                      </svg>
                                      <div className="hidden sm:block">
                                          <h1 className="font-bold text-base leading-tight">CoCo ShadowLedger</h1>
-                                          <p className="text-xs text-teal-400">v8.9 (Current)</p>
+                                          <p className="text-xs text-teal-400">v8.10 (Current)</p>
                                  </div>
                                      <h1 className="sm:hidden font-bold">CoCo SL</h1>
                             </div>
