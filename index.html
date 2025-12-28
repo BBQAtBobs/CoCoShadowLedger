@@ -1989,100 +1989,81 @@
                               <li><strong>💡 Why This Matters:</strong> Many users were missing critical pay codes (especially "No Break" bonuses and training pay) because the old parser was too rigid. This fix ensures EVERY line from ServiceNow gets captured correctly, preventing false discrepancy alerts.</li>
                          </ul>
                      </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>👋 First-time help:</strong> New users see a welcome screen explaining what this app does and how to use it.</li>
-                             <li><strong>⚡ One-click import:</strong> Drag a button to your bookmarks, click it on Workday, and your data copies automatically. Way faster than copy-paste!</li>
-                             <li><strong>✅ Setup checklist:</strong> Dashboard shows what you've done and what's left (base rate, timecard, payroll report).</li>
-                             <li><strong>📱 Quick add shifts:</strong> Add shifts manually on your phone in 15 seconds - perfect for the ambulance.</li>
-                             <li><strong>🐛 Fixed Workday links:</strong> All instructions now point to the correct system (was pointing to the wrong one).</li>
-                             <li><strong>📧 Submit feedback:</strong> New feedback form in Help tab - tell us what you think or report bugs.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.7</span></div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                            <li><strong>✓ Total pay matters most:</strong> Now focuses on whether your total paycheck matches (not every line item).</li>
-                            <li><strong>Green = good:</strong> When totals match, you see "Totals Match - You're Good!"</li>
-                            <li><strong>Less confusing colors:</strong> Blue for info, red only for real problems.</li>
-                            <li><strong>Why:</strong> Payroll uses complex rules we can't replicate, but we CAN check if you got the right total amount.</li>
+                            <li>Welcome screen for new users</li>
+                            <li>One-click import from Workday (drag bookmarklet)</li>
+                            <li>Setup checklist on Dashboard</li>
+                            <li>Quick add shifts on mobile (15 seconds)</li>
+                            <li>Fixed Workday links</li>
+                            <li>Feedback form added</li>
                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.6.1</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🔧 Better input boxes:</strong> Removed annoying up/down arrows that covered numbers.</li>
-                             <li><strong>📏 Easier to read:</strong> Input fields are wider so you can see full dollar amounts.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.6</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>💰 Base rate up front:</strong> Your hourly rate is now the first thing you see (it's important!).</li>
-                             <li><strong>✅ Visual feedback:</strong> Green checkmark shows when you've set a valid rate.</li>
-                             <li><strong>Why:</strong> Base rate is the foundation for all pay calculations.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.5</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🎯 Fixed hour display:</strong> Mando and Holdover hours now show actual time worked (not doubled hours).</li>
-                             <li><strong>Example:</strong> 2.7 hours worked shows as "2.7h ×2" (not 5.4h).</li>
-                             <li><strong>Why:</strong> Now matches how Workday displays it.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.4</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🔧 Fixed holdover display:</strong> Shifts now correctly split into regular hours and holdover hours.</li>
-                             <li><strong>Example:</strong> First 12 hours show as "Regular", hours after show as "Holdover".</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.3</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🔧 Critical fix:</strong> Mando/Holdover pay now calculated correctly (doubles hours, not your rate).</li>
-                             <li><strong>Why:</strong> Payroll counts 12 hours as 24 hours at your base rate, not 12 hours at double rate.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.2</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🎯 Classification Agreement:</strong> See if you and payroll agree on shift types (Mando, Holdover, Holiday, Meal Bonus, PTO).</li>
-                             <li><strong>✅ Smart Detection:</strong> "You claimed, PAR missing" vs "PAR paid, you didn't claim" vs "Both agree".</li>
-                             <li><strong>🚨 Catch Missed Claims:</strong> Instantly spot if PAR paid a meal bonus you forgot to claim, or vice versa.</li>
-                             <li><strong>🎨 Clean UI:</strong> Compact badges only show relevant modifiers, no clutter for regular shifts.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.1</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>📱 Mobile Responsive:</strong> Fully optimized for phone and tablet - table stacks beautifully on small screens.</li>
-                             <li><strong>📄 PDF Export:</strong> One-click export to PDF with professional formatting, ready to submit to HR.</li>
-                             <li><strong>🖨️ Print-Ready:</strong> Comprehensive print styles ensure clean, professional output with all details included.</li>
-                             <li><strong>🔍 Enhanced Reconciliation:</strong> Visual diff indicators with color-coded badges (green = match, amber = minor diff).</li>
-                             <li><strong>📊 Side-by-Side Comparison:</strong> Clear visual comparison with blue badges for "My Calc" and green for "PAR Data".</li>
-                             <li><strong>✨ Better Visual Feedback:</strong> Border indicators, hover effects, and icons make discrepancies instantly obvious.</li>
-                             <li><strong>🤖 AI in PDF:</strong> AI analysis now included in PDF exports for complete documentation.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.0</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🎨 Modern Table View:</strong> Complete dashboard redesign from cards to a sleek, responsive table layout with one row per day.</li>
-                             <li><strong>Expandable Edit Panels:</strong> Click any row to expand an inline editor with shift details, toggles, and reconciliation data.</li>
-                             <li><strong>Visual Hierarchy:</strong> Enhanced visual feedback with ring outlines, elevated shadows, gradient backgrounds, and status badges.</li>
-                             <li><strong>Fixed Z-Index Layering:</strong> Sticky header now properly stays above expanded content when scrolling.</li>
-                             <li><strong>Status at a Glance:</strong> Quick visual status indicators (Green "Match" / Red "Alert") for each day's audit results.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.3</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>Smart Total-Based Validation:</strong> Switched from line-by-line comparison to intelligent total-based validation for more accurate audits.</li>
-                             <li><strong>Improved Holdover Logic:</strong> Better handling of holdover pay calculations to reduce false discrepancies.</li>
-                             <li><strong>Tolerance Thresholds:</strong> Small differences under $5 or 0.5 hours are now intelligently filtered out.</li>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.7</span></div>
+                      <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                           <li>Focus on total pay (not every line)</li>
+                           <li>Green checkmark when totals match</li>
+                           <li>Clearer colors (blue = info, red = problem)</li>
+                      </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.6</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Better input fields (cleaner, wider)</li>
+                            <li>Base rate shown first</li>
+                            <li>Green checkmark when rate is set</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.5</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Fixed Mando/Holdover hour display</li>
+                            <li>Shows actual hours worked (with ×2 icon)</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.4</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Fixed holdover split (regular vs holdover hours)</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.3</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Fixed Mando/Holdover calculation (doubles hours at base rate)</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.2</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Compare shift types (Mando, Holiday, etc.) with payroll</li>
+                            <li>Shows disagreements and missed claims</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.1</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Mobile friendly</li>
+                            <li>PDF export</li>
+                            <li>Better visual indicators</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.0</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>New table layout</li>
+                            <li>Click rows to edit</li>
+                            <li>Color-coded status badges</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v7.3</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Better validation logic</li>
+                            <li>Improved holdover calculations</li>
+                            <li>Ignores small differences (under $5)</li>
                         </ul>
                     </div>
                     <div>
