@@ -128,7 +128,14 @@
         // ⚠️ SECURITY WARNING: Any key placed here is visible to users via "View Source".
         // For public apps, use a backend proxy. For internal pilots, this is acceptable.
         // 🔑 Get a fresh key at: https://aistudio.google.com/app/apikey
-        const GLOBAL_API_KEY = "AIzaSyDeQpobrFd8aB5jc79IagD0i1pmNqoGxM4"; 
+        const GLOBAL_API_KEY = "AIzaSyDeQpobrFd8aB5jc79IagD0i1pmNqoGxM4";
+        
+        // 📧 FEEDBACK EMAIL - Update this to your email before launch!
+        const FEEDBACK_EMAIL = "rmccook@gmail.com"; // ⚠️ CHANGE THIS!
+        
+        // 🔗 FORMSPREE ENDPOINT - For automated form submissions (no email client needed!)
+        // Get your free endpoint: https://formspree.io/ → Create form → Copy form ID
+        const FORMSPREE_ENDPOINT = "https://formspree.io/f/mzdbawev"; // ⚠️ CHANGE THIS! 
 
         // Validation tolerances
         const PAY_TOLERANCE = 10.0;
@@ -440,10 +447,16 @@
                     }
                     if (buffer.length >= 3) {
                         const [hours, rate, amount] = buffer;
-                        newReportData[currentDate].entries.push({ code, hours, rate, amount });
-                        newReportData[currentDate].totalPay += amount;
-                        if(!code.toLowerCase().includes('no break') && !code.toLowerCase().includes('imputed')) newReportData[currentDate].totalHours += hours;
-                        importCount++;
+                        // Check for duplicates before adding
+                        const alreadyExists = newReportData[currentDate].entries.some(
+                            e => e.code === code && e.hours === hours && e.amount === amount
+                        );
+                        if (!alreadyExists) {
+                            newReportData[currentDate].entries.push({ code, hours, rate, amount });
+                            newReportData[currentDate].totalPay += amount;
+                            if(!code.toLowerCase().includes('no break') && !code.toLowerCase().includes('imputed')) newReportData[currentDate].totalHours += hours;
+                            importCount++;
+                        }
                     }
                     continue;
                 }
@@ -1118,7 +1131,7 @@
                     </div>
 
                     {/* EXPANDABLE EDIT PANEL */}
-                    <div className={`${showExpanded ? 'block' : 'hidden'} expandable-row bg-gradient-to-br from-teal-50 via-white to-slate-50/30 border-t-4 border-teal-300 shadow-inner max-h-[70vh] overflow-y-auto px-3 md:px-6 py-4 md:py-6 print:block print:max-h-none print:overflow-visible`}>
+                    <div onClick={(e) => e.stopPropagation()} className={`${showExpanded ? 'block' : 'hidden'} expandable-row bg-gradient-to-br from-teal-50 via-white to-slate-50/30 border-t-4 border-teal-300 shadow-inner max-h-[70vh] overflow-y-auto px-3 md:px-6 py-4 md:py-6 print:block print:max-h-none print:overflow-visible`}>
                             <div className="max-w-6xl mx-auto">
                                 {/* Header Actions */}
                                 <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
@@ -2134,25 +2147,257 @@
          * Help View - Provides support information and anonymized data export
          * @component
          */
-        const HelpView = ({detectedCodes, handleCopyAnonymized}) => (
-             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.ShieldAlert className="w-5 h-5 text-teal-500" /> Help & Feedback</h2>
-                <div className="mb-6">
-                    <h3 className="font-bold text-slate-700 mb-2">Roadmap</h3>
-                    <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                        <li>AI Discrepancy Analysis (Added!)</li>
-                        <li>PDF Export</li>
-                    </ul>
-                </div>
-                <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                        <h3 className="font-bold text-slate-700 mb-2">Discovered Pay Codes</h3>
-                        <div className="flex flex-wrap gap-2">{detectedCodes.map(c => <span key={c} className="text-xs bg-white border px-2 py-1 rounded shadow-sm">{c}</span>)}</div>
+        const HelpView = ({detectedCodes, handleCopyAnonymized}) => {
+            const [feedbackForm, setFeedbackForm] = useState({
+                name: '',
+                email: '',
+                message: '',
+                category: 'feedback'
+            });
+            const [submitted, setSubmitted] = useState(false);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [sharePayCodes, setSharePayCodes] = useState(() => {
+                return localStorage.getItem('sharePayCodes') !== 'false';
+            });
+            
+            // Collect pay codes to shared library
+            useEffect(() => {
+                if (sharePayCodes && detectedCodes.length > 0) {
+                    const sharedCodes = JSON.parse(localStorage.getItem('sharedPayCodeLibrary') || '{}');
+                    detectedCodes.forEach(code => {
+                        if (!sharedCodes[code]) {
+                            sharedCodes[code] = {
+                                firstSeen: new Date().toISOString(),
+                                count: 1
+                            };
+                        } else {
+                            sharedCodes[code].count++;
+                        }
+                    });
+                    localStorage.setItem('sharedPayCodeLibrary', JSON.stringify(sharedCodes));
+                }
+            }, [detectedCodes, sharePayCodes]);
+            
+            const handleSubmitFeedback = async () => {
+                if (!feedbackForm.message.trim()) {
+                    alert('⚠️ Please enter a message before submitting.');
+                    return;
+                }
+                
+                setIsSubmitting(true);
+                
+                try {
+                    // Prepare form data
+                    const formData = new FormData();
+                    formData.append('name', feedbackForm.name || 'Anonymous');
+                    formData.append('email', feedbackForm.email || 'Not provided');
+                    formData.append('category', feedbackForm.category);
+                    formData.append('message', feedbackForm.message);
+                    formData.append('version', 'v8.8');
+                    formData.append('detectedCodes', detectedCodes.join(', '));
+                    formData.append('_subject', `CoCo SL Feedback: ${feedbackForm.category}`);
+                    
+                    // Submit to Formspree
+                    const response = await fetch(FORMSPREE_ENDPOINT, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        setSubmitted(true);
+                        setFeedbackForm({name: '', email: '', message: '', category: 'feedback'});
+                        setTimeout(() => setSubmitted(false), 8000);
+                    } else {
+                        throw new Error('Form submission failed');
+                    }
+                } catch (error) {
+                    console.error('Feedback submission error:', error);
+                    alert('❌ Could not submit feedback automatically.\n\nPlease email your feedback directly to:\n' + FEEDBACK_EMAIL + '\n\nMessage:\n' + feedbackForm.message);
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+            
+            const exportPayCodeLibrary = () => {
+                const library = JSON.parse(localStorage.getItem('sharedPayCodeLibrary') || '{}');
+                const csv = 'Pay Code,First Seen,Times Seen\n' + 
+                    Object.entries(library)
+                        .sort((a, b) => b[1].count - a[1].count)
+                        .map(([code, data]) => `${code},${data.firstSeen},${data.count}`)
+                        .join('\n');
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `paycode-library-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+            
+            return (
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4 space-y-6">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <Icons.ShieldAlert className="w-5 h-5 text-teal-500" /> Help & Feedback
+                    </h2>
+                    
+                    {/* Feedback Form */}
+                    <div className="bg-gradient-to-br from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-xl p-5">
+                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <Icons.Info className="w-5 h-5 text-teal-600"/>
+                            Submit Feedback
+                        </h3>
+                        {submitted ? (
+                            <div className="bg-emerald-100 border border-emerald-300 rounded-lg p-6 text-center animate-in zoom-in">
+                                <Icons.CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-3"/>
+                                <h3 className="text-xl font-bold text-emerald-800 mb-2">Thank You!</h3>
+                                <p className="text-emerald-700 mb-4">Your feedback has been submitted successfully.</p>
+                                <p className="text-sm text-emerald-600">I'll review it and get back to you if you provided an email!</p>
+                                <button 
+                                    onClick={() => setSubmitted(false)}
+                                    className="mt-4 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-all"
+                                >
+                                    Submit More Feedback
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1">Name (Optional)</label>
+                                        <input 
+                                            type="text"
+                                            value={feedbackForm.name}
+                                            onChange={(e) => setFeedbackForm({...feedbackForm, name: e.target.value})}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                            placeholder="Your name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1">Email (Optional)</label>
+                                        <input 
+                                            type="email"
+                                            value={feedbackForm.email}
+                                            onChange={(e) => setFeedbackForm({...feedbackForm, email: e.target.value})}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                            placeholder="your@email.com"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">Category</label>
+                                    <select 
+                                        value={feedbackForm.category}
+                                        onChange={(e) => setFeedbackForm({...feedbackForm, category: e.target.value})}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                    >
+                                        <option value="feedback">General Feedback</option>
+                                        <option value="bug">Bug Report</option>
+                                        <option value="feature">Feature Request</option>
+                                        <option value="paycode">Pay Code Info</option>
+                                        <option value="help">Need Help</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">Message *</label>
+                                    <textarea 
+                                        value={feedbackForm.message}
+                                        onChange={(e) => setFeedbackForm({...feedbackForm, message: e.target.value})}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm h-32"
+                                        placeholder="Tell us what you think, report a bug, or request a feature..."
+                                    />
+                                </div>
+                                
+                                <button 
+                                    onClick={handleSubmitFeedback}
+                                    disabled={isSubmitting}
+                                    className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                >
+                                    {isSubmitting ? '⏳ Sending...' : '📤 Send Feedback'}
+                                </button>
+                                
+                                <p className="text-xs text-slate-500 text-center">
+                                    Your feedback helps make this tool better for everyone!
+                                </p>
+                            </div>
+                        )}
                     </div>
-                    <button onClick={handleCopyAnonymized} className="w-full py-3 bg-slate-800 text-white rounded font-bold hover:bg-slate-700 flex items-center justify-center gap-2"><Icons.Copy className="w-4 h-4"/> Copy Debug Info</button>
+                    
+                    {/* Pay Code Sharing */}
+                    <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-5">
+                        <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <Icons.Database className="w-5 h-5 text-purple-600"/>
+                            Pay Code Library (Crowdsourced)
+                        </h3>
+                        
+                        <div className="bg-white border border-purple-200 rounded-lg p-3 mb-3">
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={sharePayCodes}
+                                    onChange={(e) => {
+                                        setSharePayCodes(e.target.checked);
+                                        localStorage.setItem('sharePayCodes', e.target.checked);
+                                    }}
+                                    className="w-4 h-4 mt-0.5 text-purple-500"
+                                />
+                                <div className="flex-1">
+                                    <div className="font-bold text-sm text-slate-800">Share my pay codes anonymously</div>
+                                    <p className="text-xs text-slate-600 mt-1">
+                                        Help build a shared library of AMR pay codes. Only the code names are collected (e.g., "520", "MANDO"), no personal data or amounts.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-bold text-slate-700">Your Detected Codes ({detectedCodes.length})</span>
+                                <button 
+                                    onClick={exportPayCodeLibrary}
+                                    className="text-xs bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded font-bold"
+                                >
+                                    📥 Export Library
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {detectedCodes.length > 0 ? (
+                                    detectedCodes.map(c => (
+                                        <span key={c} className="text-xs bg-white border border-purple-300 px-2 py-1 rounded shadow-sm font-mono">
+                                            {c}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-slate-500 italic">Import payroll data to see codes</p>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="mt-3 text-xs text-purple-700 bg-purple-100 rounded p-2">
+                            <strong>💡 Why this matters:</strong> By sharing codes anonymously, we're building a community dictionary to help decode cryptic pay codes like "520" or "MANDO" so everyone understands their paystubs better!
+                        </div>
+                    </div>
+                    
+                    {/* Debug Info */}
+                    <div className="border-t pt-4">
+                        <button 
+                            onClick={handleCopyAnonymized} 
+                            className="w-full py-3 bg-slate-800 text-white rounded font-bold hover:bg-slate-700 flex items-center justify-center gap-2"
+                        >
+                            <Icons.Copy className="w-4 h-4"/> Copy Debug Info
+                        </button>
+                        <p className="text-xs text-slate-500 text-center mt-2">
+                            For troubleshooting - shares anonymized shift/code data only
+                        </p>
+                    </div>
                 </div>
-             </div>
-        );
+            );
+        };
 
         // ═══════════════════════════════════════════════════════════════════
         // 🎛️ UI COMPONENTS - DASHBOARD (Main Calculation & Display Logic)
@@ -2163,7 +2408,7 @@
          * Handles complex payroll calculations including OT, mando, holdover, night diff
          * @component
          */
-        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay, setActiveTab, onOpenAI }) => {
+        const DashboardView = ({ shifts, payrollReport, settings, setSettings, updateShift, removeShift, addShift, removePayPeriod, handleClearData, removeDay, setActiveTab, setImportMode, onOpenAI }) => {
             const [expandedCards, setExpandedCards] = useState({});
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [showGuide, setShowGuide] = useState(true);
@@ -2381,7 +2626,7 @@
                                         Timecard {shifts.length > 0 ? `(${shifts.length} shifts)` : 'Needed'}
                                     </div>
                                     {shifts.length === 0 && (
-                                        <button onClick={() => setActiveTab('import')} className="text-xs text-teal-600 hover:underline">Import now →</button>
+                                        <button onClick={() => { setImportMode('timecard'); setActiveTab('import'); }} className="text-xs text-teal-600 hover:underline">Import now →</button>
                                     )}
                                 </div>
                             </div>
@@ -2398,7 +2643,7 @@
                                         Payroll Report {Object.keys(payrollReport).length > 0 ? `(${Object.keys(payrollReport).length} days)` : 'Needed'}
                                     </div>
                                     {Object.keys(payrollReport).length === 0 && (
-                                        <button onClick={() => setActiveTab('import')} className="text-xs text-teal-600 hover:underline">Import now →</button>
+                                        <button onClick={() => { setImportMode('report'); setActiveTab('import'); }} className="text-xs text-teal-600 hover:underline">Import now →</button>
                                     )}
                                 </div>
                             </div>
@@ -2797,6 +3042,7 @@
                                     handleClearData={() => { if(confirm("Clear ALL data?")) { setShifts([]); setPayrollReport({}); localStorage.clear(); } }}
                                     removeDay={(id, dateStr) => { if (id) setShifts(shifts.filter(s => s.id !== id)); else if (dateStr && confirm(`Delete ${dateStr}?`)) setShifts(prev => prev.filter(s => s.date !== dateStr)); }}
                                     setActiveTab={setActiveTab}
+                                    setImportMode={setImportMode}
                                     onOpenAI={handleOpenAI}
                                 />
                             }
