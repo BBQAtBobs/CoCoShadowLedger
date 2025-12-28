@@ -23,9 +23,10 @@
 
     <style>
         body { background-color: #f8fafc; overscroll-behavior-y: none; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar { width: 8px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
         .ai-glow { animation: pulse-glow 2s infinite; }
         @keyframes pulse-glow {
@@ -592,11 +593,11 @@
             }
 
             return (
-                <div className="bg-white border-b border-slate-100 hover:shadow-sm transition-all">
+                <div className={`bg-white border-b border-slate-100 transition-all ${showExpanded ? 'ring-2 ring-indigo-300 shadow-xl z-10' : 'hover:shadow-sm'}`}>
                     {/* SEXY TABLE ROW */}
                     <div 
                         onClick={onToggleExpand}
-                        className={`group grid grid-cols-12 gap-3 px-6 py-4 cursor-pointer items-center ${showExpanded ? 'bg-gradient-to-r from-indigo-50/30 to-transparent' : 'hover:bg-slate-50/50'}`}
+                        className={`group grid grid-cols-12 gap-3 px-6 py-4 cursor-pointer items-center transition-all ${showExpanded ? 'bg-indigo-100' : 'hover:bg-slate-50/50'}`}
                     >
                         {/* Column 1: Date */}
                         <div className="col-span-2">
@@ -642,7 +643,7 @@
 
                     {/* EXPANDABLE EDIT PANEL */}
                     {showExpanded && (
-                        <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50/30 border-t border-slate-100 px-6 py-6">
+                        <div className="bg-gradient-to-br from-indigo-50 via-white to-slate-50/30 border-t-2 border-indigo-400 shadow-inner max-h-[65vh] overflow-y-auto px-6 py-6">
                             <div className="max-w-6xl mx-auto">
                                 {/* Header Actions */}
                                 <div className="flex justify-between items-center mb-6">
@@ -866,10 +867,8 @@
                                 </div>
                             )}
                         </div>
+                        </div>
                     )}
-                                </div>
-                            </div>
-                        )}
                 </div>
             );
         };
