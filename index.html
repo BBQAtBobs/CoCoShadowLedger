@@ -452,10 +452,10 @@
                             e => e.code === code && e.hours === hours && e.amount === amount
                         );
                         if (!alreadyExists) {
-                            newReportData[currentDate].entries.push({ code, hours, rate, amount });
-                            newReportData[currentDate].totalPay += amount;
-                            if(!code.toLowerCase().includes('no break') && !code.toLowerCase().includes('imputed')) newReportData[currentDate].totalHours += hours;
-                            importCount++;
+                        newReportData[currentDate].entries.push({ code, hours, rate, amount });
+                        newReportData[currentDate].totalPay += amount;
+                        if(!code.toLowerCase().includes('no break') && !code.toLowerCase().includes('imputed')) newReportData[currentDate].totalHours += hours;
+                        importCount++;
                         }
                     }
                     continue;
@@ -1054,44 +1054,44 @@
                     >
                         {/* DESKTOP VIEW: Grid Layout */}
                         <div className="hidden md:grid grid-cols-12 gap-3 px-6 py-4 items-center">
-                            {/* Column 1: Date */}
-                            <div className="col-span-2">
-                                <div className="font-bold text-slate-900 text-sm">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
-                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">{timeDisplay}</div>
+                        {/* Column 1: Date */}
+                        <div className="col-span-2">
+                            <div className="font-bold text-slate-900 text-sm">{new Date(dayGroup.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month:'short', day:'numeric'})}</div>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">{timeDisplay}</div>
                         </div>
 
-                            {/* Column 2: My Hours */}
-                            <div className="col-span-2 text-center">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
-                                <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
+                        {/* Column 2: My Hours */}
+                        <div className="col-span-2 text-center">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Hours</div>
+                            <div className="font-mono font-bold text-slate-700 text-sm">{myTotalHours.toFixed(1)}h</div>
                     </div>
 
-                            {/* Column 3: PAR Hours */}
-                            <div className="col-span-2 text-center">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">PAR Hours</div>
-                                <div className="font-mono font-bold text-slate-700 text-sm">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
-                            </div>
+                        {/* Column 3: PAR Hours */}
+                        <div className="col-span-2 text-center">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">PAR Hours</div>
+                            <div className="font-mono font-bold text-slate-700 text-sm">{reportData ? `${reportData.totalHours.toFixed(1)}h` : '—'}</div>
+                        </div>
 
-                            {/* Column 4: My Pay */}
-                            <div className="col-span-2 text-right">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Calc</div>
+                        {/* Column 4: My Pay */}
+                        <div className="col-span-2 text-right">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">My Calc</div>
                                 <div className="font-mono font-bold text-teal-600">{formatMoney(totalPay)}</div>
+                        </div>
+
+                        {/* Column 5: PAR Pay */}
+                        <div className="col-span-2 text-right">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
+                            <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
+                        </div>
+
+                        {/* Column 6: Status Badge */}
+                        <div className="col-span-2 flex justify-end items-center gap-2">
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
+                                {statusBadge.icon}
+                                <span>{statusBadge.label}</span>
                             </div>
-
-                            {/* Column 5: PAR Pay */}
-                            <div className="col-span-2 text-right">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Actual</div>
-                                <div className="font-mono font-bold text-emerald-600">{reportData ? formatMoney(reportData.totalPay) : '—'}</div>
-                                            </div>
-
-                            {/* Column 6: Status Badge */}
-                            <div className="col-span-2 flex justify-end items-center gap-2">
-                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusBadge.bg} ${statusBadge.text} font-bold text-xs shadow-sm`}>
-                                    {statusBadge.icon}
-                                    <span>{statusBadge.label}</span>
-                                                </div>
                                 <div className="text-slate-300 group-hover:text-teal-400 transition-colors">
-                                    {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
+                                {showExpanded ? <Icons.ChevronUp className="w-4 h-4"/> : <Icons.ChevronDown className="w-4 h-4"/>}
                                             </div>
                                     </div>
                                     </div>
@@ -1142,7 +1142,7 @@
                                             className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
                                         >
                                             <Icons.Plus className="w-3.5 h-3.5"/> Add Shift
-                            </button>
+                                        </button>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); if(confirm('Delete this day?')) onRemove(null, dayGroup.date); }} 
                                             className="px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-200 flex items-center gap-1.5 transition-colors"
@@ -1150,8 +1150,8 @@
                                             <Icons.Trash2 className="w-3.5 h-3.5"/> Delete Day
                                         </button>
                                     </div>
-                                        </div>
-                                        
+                                </div>
+
                                 {/* Classification Agreement Checker */}
                                 {reportData && (
                                     <div className="mb-6 bg-white rounded-lg border-2 border-slate-200 p-4 shadow-sm">
@@ -1253,7 +1253,7 @@
                              const crossesMidnight = endD.getDate() > startD.getDate();
                              const estHours = shift.isPaidLeave ? shift.paidLeaveHours : (endD-startD)/36e5;
 
-                                            return (
+                             return (
                                         <div key={shift.id} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative group">
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); onRemove(shift.id); }} 
@@ -1272,7 +1272,7 @@
                                                         className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                                                     />
                                                     <span className="text-slate-400 text-xs font-medium">hours</span>
-                                                    </div>
+                                            </div>
                                         ) : (
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <input 
@@ -1292,7 +1292,7 @@
                                                         {crossesMidnight && <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">+1</span>}
                                                 </div>
                                                     <span className="font-mono text-xs text-slate-500 font-medium min-w-[3rem] text-right">{estHours.toFixed(2)}h</span>
-                                    </div>
+                                            </div>
                                         )}
                                             
                                             <div className="flex flex-wrap gap-2">
@@ -1304,8 +1304,8 @@
                                                         <button onClick={(e) => { e.stopPropagation(); onUpdate(shift.id, 'isHoldover', !shift.isHoldover); }} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${shift.isHoldover ? 'bg-orange-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>HOLD</button>
                                                         <button onClick={(e) => { e.stopPropagation(); onUpdate(shift.id, 'isMando', !shift.isMando); }} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${shift.isMando ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>MANDO</button>
                                             </>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
                                 </div>
                              );
                         })}
@@ -1324,15 +1324,15 @@
                                             <div key={idx} className="flex justify-between items-center text-xs py-2 border-b border-slate-100 last:border-0">
                                                 <span className="text-slate-700 font-medium truncate flex-1" title={entry.code}>{entry.code}</span>
                                                 <span className="font-mono text-slate-500 text-[11px] ml-3">{entry.hours.toFixed(1)}h × ${entry.rate.toFixed(2)}</span>
-                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                     <div className="flex justify-between items-center pt-3 border-t-2 border-emerald-200">
                                         <span className="font-bold text-sm text-slate-700">Actual Total</span>
                                         <span className="font-bold text-lg text-emerald-600">{formatMoney(reportData.totalPay)}</span>
                                     </div>
-                        </div>
-                    ) : (
+                                </div>
+                            ) : (
                                 <div className="bg-white rounded-lg p-6 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center min-h-[200px]">
                                     <Icons.Clipboard className="w-10 h-10 text-slate-300 mb-3"/>
                                     <p className="text-sm text-slate-500 font-medium mb-1">No PAR Data</p>
@@ -1342,31 +1342,31 @@
                                         className="px-4 py-2 bg-teal-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-colors"
                                     >
                                         Import Report
-                             </button>
-                         </div>
-                    )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                                        </div>
-                                        
+                    </div>
+
                     {/* EXPANDABLE DETAIL: Reconciliation Grid */}
                     {reportData && (
                         <div className="border-t border-slate-200 bg-slate-50 p-3 md:p-4 mt-4 no-page-break">
                             <div className="mb-3">
                                 <div className="text-xs font-bold text-slate-600 flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
-                                        <Icons.Grid className="w-4 h-4"/>
-                                        Line-by-Line Breakdown
-                                    </div>
+                                    <Icons.Grid className="w-4 h-4"/>
+                                    Line-by-Line Breakdown
+                                </div>
                                     <div className="flex items-center gap-3 text-[9px] font-normal">
                                         <div className="flex items-center gap-1">
                                             <div className="w-3 h-3 bg-teal-50 border border-indigo-200 rounded"></div>
                                             <span className="text-indigo-700">My Calc</span>
-                                        </div>
+                                </div>
                                         <div className="flex items-center gap-1">
                                             <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded"></div>
                                             <span className="text-emerald-700">PAR Data</span>
-                                        </div>
-                                    </div>
+                            </div>
+                                </div>
                                 </div>
                                 {matchStatus === 'match' ? (
                                     <div className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded p-2.5 mb-1 flex items-start gap-2">
@@ -1423,8 +1423,8 @@
                 localStorage.setItem('hasVisited', 'true');
                 onClose();
             };
-            
-            return (
+
+                                            return (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleStart}>
                     <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full animate-in zoom-in" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
@@ -1434,15 +1434,15 @@
                                     <path d="M16 2L6 6V14C6 20.5 10 26.5 16 29C22 26.5 26 20.5 26 14V6L16 2Z" fill="white"/>
                                     <path d="M11 16L14 19L21 11" stroke="#14B8A6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
-                            </div>
+                                                    </div>
                             <h2 className="text-2xl font-bold text-center">Welcome to CoCo ShadowLedger!</h2>
                             <p className="text-teal-100 text-center text-sm mt-1">Protect Your Paycheck</p>
-                        </div>
-                        
+                                    </div>
+
                         {/* Content */}
                         <div className="p-6 space-y-5">
                             {/* What is this */}
-                            <div>
+                                    <div>
                                 <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                                     <Icons.HelpCircle className="w-5 h-5 text-teal-600"/>
                                     What is this?
@@ -1450,7 +1450,7 @@
                                 <p className="text-slate-600 text-sm leading-relaxed">
                                     A tool that helps <strong>AMR Paramedics & EMTs</strong> verify their paychecks are accurate by comparing punch data against official payroll records.
                                 </p>
-                            </div>
+                                </div>
                             
                             {/* Why you need it */}
                             <div>
@@ -1472,10 +1472,10 @@
                                         <span><strong>Missed meals</strong> not paid</span>
                                     </li>
                                 </ul>
-                            </div>
+                        </div>
                             
                             {/* How it works */}
-                            <div>
+                                    <div>
                                 <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                                     <Icons.CheckCircle className="w-5 h-5 text-emerald-500"/>
                                     How it works
@@ -1498,7 +1498,7 @@
                                         <span className="pt-0.5">See if your paycheck matches!</span>
                                     </li>
                                 </ol>
-                            </div>
+                                        </div>
                             
                             {/* Key benefits */}
                             <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
@@ -1509,10 +1509,10 @@
                                 <div className="flex items-center gap-2 text-emerald-800 text-sm mt-1.5">
                                     <Icons.Clock className="w-4 h-4 flex-shrink-0"/>
                                     <span><strong>Quick Setup:</strong> Takes about 5 minutes</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
+                            
                         {/* Footer Actions */}
                         <div className="p-6 pt-0 space-y-3">
                             <button 
@@ -1527,12 +1527,12 @@
                             >
                                 Skip intro
                             </button>
+                                </div>
                         </div>
-                    </div>
                 </div>
             );
         };
-        
+
         /**
          * Import View - Handles timecard and payroll report data import
          * @component
@@ -1545,7 +1545,7 @@
                         <div className="flex items-start gap-4">
                             <div className="bg-emerald-500 rounded-full p-2.5 mt-0.5">
                                 <Icons.DollarSign className="w-5 h-5 text-white" />
-                            </div>
+                    </div>
                             <div className="flex-1">
                                 <h3 className="font-bold text-emerald-900 text-lg mb-1">Your Base Hourly Rate</h3>
                                 <p className="text-emerald-800 text-sm mb-3 opacity-90">
@@ -1569,10 +1569,10 @@
                                         <div className="flex items-center gap-1.5 text-emerald-700 text-sm font-medium animate-in fade-in slide-in-from-left-2">
                                             <Icons.CheckCircle className="w-4 h-4" />
                                             <span>Saved!</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        </div>
+                    )}
+                    </div>
+                        </div>
                         </div>
                     </div>
                     {/* Import Section */}
@@ -1587,8 +1587,8 @@
                         </div>
                         
                         {/* Video Tutorial - Always Visible */}
-                        {importMode === 'timecard' ? (
-                            <div>
+                             {importMode === 'timecard' ? (
+                                <div>
                                 <div className="mb-4">
                                     <div className="bg-slate-900 rounded-lg overflow-hidden shadow-lg">
                                         <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-2 text-center">
@@ -1610,14 +1610,14 @@
                                 <p className="text-sm text-slate-600 text-center mb-4">
                                     Go to <a href="https://globalmedical-sso.prd.mykronos.com/timekeeping#/myTimecard?ctxt=myTimecard" target="_blank" rel="noopener noreferrer" className="text-teal-600 underline font-bold hover:text-teal-700">Kronos Timecard</a> → Copy all text → Paste below
                                 </p>
-                            </div>
-                        ) : (
-                            <div>
+                                </div>
+                             ) : (
+                                <div>
                                 <div className="mb-4">
                                     <div className="bg-slate-900 rounded-lg overflow-hidden shadow-lg">
                                         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 text-center">
                                             <p className="text-xs text-white font-bold">📹 ServiceNow PAR Import Tutorial</p>
-                                        </div>
+                                </div>
                                         <div className="relative" style={{paddingBottom: '56.25%', height: 0}}>
                                             <iframe 
                                                 src="https://www.youtube-nocookie.com/embed/RfVFQo1NBqE?rel=0&modestbranding=1" 
@@ -1628,9 +1628,9 @@
                                                 referrerPolicy="strict-origin-when-cross-origin"
                                                 className="absolute top-0 left-0 w-full h-full"
                                             />
-                                        </div>
                                     </div>
-                                </div>
+                             </div>
+                        </div>
                                 <p className="text-sm text-slate-600 text-center mb-4">
                                     Go to <a href="https://gmrcorp.service-now.com/gps?id=sc_cat_item&sys_id=1c0048e6dbac6090f9f045e8139619c2" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline font-bold hover:text-purple-700">ServiceNow PAR</a> → Select "All" items → Copy all text → Paste below
                                 </p>
@@ -1948,7 +1948,7 @@
         const ReleaseNotesView = () => (
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-teal-500" /> Release Notes</h2>
-                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.12</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
@@ -1989,77 +1989,61 @@
                               <li><strong>💡 Why This Matters:</strong> Many users were missing critical pay codes (especially "No Break" bonuses and training pay) because the old parser was too rigid. This fix ensures EVERY line from ServiceNow gets captured correctly, preventing false discrepancy alerts.</li>
                          </ul>
                      </div>
-                     <div>
-                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
-                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                              <li><strong>🎉 Welcome Modal:</strong> First-time users now see beautiful onboarding explaining what the app does, why it matters (Mando errors, missing holiday pay), and how to use it. Never shows again after first visit.</li>
-                              <li><strong>⚡ ServiceNow Bookmarklet:</strong> ONE-CLICK data import! Drag the "Import to CoCo SL" button to your bookmarks bar, click it on ServiceNow, and data auto-loads. Reduces 8 steps to 2 clicks - MASSIVE time saver!</li>
-                              <li><strong>📊 Progress Checklist:</strong> Dashboard now shows setup status at the top - see at a glance what's done (✅ Base Rate, ✅ Timecard, ✅ Payroll Report, ✅ Validated) and what's needed with quick "Import now" links.</li>
-                              <li><strong>✏️ Quick Manual Entry:</strong> Mobile-friendly shift logging! Toggle to "Quick Manual Entry" mode and add shifts in 15 seconds - perfect for logging right after your shift in the ambulance. Date picker, time pickers, checkboxes for Mando/Holiday/Missed Meal/Holdover.</li>
-                              <li><strong>🐛 Critical Fix - ServiceNow:</strong> All instructions now correctly reference SERVICENOW. Links and tutorial text updated to match actual system you use.</li>
-                              <li><strong>📱 Mobile Optimization:</strong> Manual entry form designed for touch - large tap targets, smart defaults (7am-7pm), auto-advances to next day after adding shift.</li>
-                         </ul>
-                     </div>
-                     <div>
-                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.7</span></div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🎯 Audit Assistant Approach:</strong> Complete UX overhaul - now focuses on what actually matters: TOTALS.</li>
-                             <li><strong>✓ Clear Messaging:</strong> When totals match, you see a green banner: "Totals Match - You're Good!"</li>
-                             <li><strong>💡 Line Items = Informational:</strong> PAR may classify hours differently (Regular vs Holdover), but if totals align, you're fine.</li>
-                             <li><strong>🔵 Blue = Info (not ⚠️):</strong> Line differences now show in calm blue when totals match, not alarming amber/red.</li>
-                             <li><strong>🔴 Real Warnings Only:</strong> Red warnings only appear when actual totals don't match.</li>
-                             <li><strong>📊 Why This Matters:</strong> You can't replicate payroll's exact classification logic. This app audits what you CAN verify: total hours and pay.</li>
-                             <li><strong>🧠 Philosophy:</strong> "Audit Assistant" not "Payroll Replicator" - validates your entitlement, not their methodology.</li>
+                             <li><strong>👋 First-time help:</strong> New users see a welcome screen explaining what this app does and how to use it.</li>
+                             <li><strong>⚡ One-click import:</strong> Drag a button to your bookmarks, click it on Workday, and your data copies automatically. Way faster than copy-paste!</li>
+                             <li><strong>✅ Setup checklist:</strong> Dashboard shows what you've done and what's left (base rate, timecard, payroll report).</li>
+                             <li><strong>📱 Quick add shifts:</strong> Add shifts manually on your phone in 15 seconds - perfect for the ambulance.</li>
+                             <li><strong>🐛 Fixed Workday links:</strong> All instructions now point to the correct system (was pointing to the wrong one).</li>
+                             <li><strong>📧 Submit feedback:</strong> New feedback form in Help tab - tell us what you think or report bugs.</li>
                         </ul>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.7</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li><strong>✓ Total pay matters most:</strong> Now focuses on whether your total paycheck matches (not every line item).</li>
+                            <li><strong>Green = good:</strong> When totals match, you see "Totals Match - You're Good!"</li>
+                            <li><strong>Less confusing colors:</strong> Blue for info, red only for real problems.</li>
+                            <li><strong>Why:</strong> Payroll uses complex rules we can't replicate, but we CAN check if you got the right total amount.</li>
+                       </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.6.1</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🔧 Input UX Fix:</strong> Removed spinner arrows from number inputs that were covering decimal cents.</li>
-                             <li><strong>📏 Wider Input Field:</strong> Increased width from 16px to 20-28px so "$40.00" displays clearly.</li>
-                             <li><strong>✨ Cleaner Design:</strong> No more up/down arrows cluttering the input field.</li>
-                             <li><strong>💡 Cross-browser:</strong> Applied CSS fixes for Chrome, Firefox, and Safari.</li>
+                             <li><strong>🔧 Better input boxes:</strong> Removed annoying up/down arrows that covered numbers.</li>
+                             <li><strong>📏 Easier to read:</strong> Input fields are wider so you can see full dollar amounts.</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.6</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>💰 Prominent Base Rate Input:</strong> Your hourly rate is now front-and-center in both Import and Dashboard views.</li>
-                             <li><strong>🎨 Beautiful Design:</strong> Emerald gradient box with large, clear input field makes it obvious and easy to edit.</li>
-                             <li><strong>✅ Step 0:</strong> Import tab now shows "Step 0: Set Your Base Hourly Rate" as the first thing you see.</li>
-                             <li><strong>📍 Dashboard Access:</strong> Base rate also visible in Dashboard header with tooltip explaining its importance.</li>
-                             <li><strong>🧪 Input Validation:</strong> Shows green checkmark when you've entered a valid rate.</li>
-                             <li><strong>💡 Why This Matters:</strong> Base rate is the foundation of all calculations. Users were confused about where to set it.</li>
+                             <li><strong>💰 Base rate up front:</strong> Your hourly rate is now the first thing you see (it's important!).</li>
+                             <li><strong>✅ Visual feedback:</strong> Green checkmark shows when you've set a valid rate.</li>
+                             <li><strong>Why:</strong> Base rate is the foundation for all pay calculations.</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.5</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🎯 Display Fix - Mando/Holdover Hours:</strong> "My Hrs" now shows ACTUAL hours worked (matching PAR format), not payable hours.</li>
-                             <li><strong>📊 Before:</strong> NF Holdover showed "5.4h ×2" (confusing - was showing payable hours)</li>
-                             <li><strong>✅ After:</strong> NF Holdover shows "2.7h ×2" (clear - shows actual hours worked with doubling indicator)</li>
-                             <li><strong>💡 Why This Matters:</strong> PAR displays actual hours worked, not payable hours. The ×2 badge explains the doubling, so the numbers now match exactly.</li>
-                             <li><strong>🔍 Hover Tooltip:</strong> Shows full calculation (e.g., "2.7h worked → 5.4h payable (doubled)")</li>
+                             <li><strong>🎯 Fixed hour display:</strong> Mando and Holdover hours now show actual time worked (not doubled hours).</li>
+                             <li><strong>Example:</strong> 2.7 hours worked shows as "2.7h ×2" (not 5.4h).</li>
+                             <li><strong>Why:</strong> Now matches how Workday displays it.</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.4</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🔧 Holdover Segment Fix:</strong> Fixed bug where holdover hours weren't displaying separately from regular hours.</li>
-                             <li><strong>🎯 Accurate Breakdown:</strong> Now correctly splits shifts into "Regular" (first 12h) and "NF Holdover" (hours after threshold).</li>
-                             <li><strong>💡 The Issue:</strong> When holdover kicked in mid-shift, the segment wasn't closing because the rate multiplier didn't change.</li>
-                             <li><strong>✅ The Fix:</strong> Segments now split when mando/holdover status changes, not just when rate changes.</li>
-                             <li><strong>📊 Result:</strong> "My Hours" now shows the correct breakdown matching PAR's format.</li>
+                             <li><strong>🔧 Fixed holdover display:</strong> Shifts now correctly split into regular hours and holdover hours.</li>
+                             <li><strong>Example:</strong> First 12 hours show as "Regular", hours after show as "Holdover".</li>
                         </ul>
                     </div>
                     <div>
                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.3</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🔧 CRITICAL FIX - Mando/Holdover Calculation:</strong> Now matches payroll's actual method (doubles hours, not rate).</li>
-                             <li><strong>📊 Before:</strong> 12h × $100/hr = $1,200 (app was wrong)</li>
-                             <li><strong>✅ After:</strong> 24h × $50/hr = $1,200 (matches PAR exactly)</li>
-                             <li><strong>🎯 Visual Indicator:</strong> Shows "24h ×2" in reconciliation so you know hours were doubled.</li>
-                             <li><strong>💡 Why This Matters:</strong> Payroll doesn't change your rate to 2x — they bill you for double the hours at base rate. This fixes the weird disconnects where totals matched but hours didn't.</li>
+                             <li><strong>🔧 Critical fix:</strong> Mando/Holdover pay now calculated correctly (doubles hours, not your rate).</li>
+                             <li><strong>Why:</strong> Payroll counts 12 hours as 24 hours at your base rate, not 12 hours at double rate.</li>
                         </ul>
                     </div>
                     <div>
@@ -2262,7 +2246,7 @@
                                 >
                                     Submit More Feedback
                                 </button>
-                            </div>
+                </div>
                         ) : (
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
@@ -2275,7 +2259,7 @@
                                             className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
                                             placeholder="Your name"
                                         />
-                                    </div>
+                    </div>
                                     <div>
                                         <label className="block text-xs font-bold text-slate-700 mb-1">Email (Optional)</label>
                                         <input 
@@ -2394,9 +2378,9 @@
                         <p className="text-xs text-slate-500 text-center mt-2">
                             For troubleshooting - shares anonymized shift/code data only
                         </p>
-                    </div>
                 </div>
-            );
+             </div>
+        );
         };
 
         // ═══════════════════════════════════════════════════════════════════
@@ -2799,7 +2783,7 @@
                                     <span className="text-white font-bold">
                                         {new Date(g.startDate+432e5).toLocaleDateString()} - {new Date(g.endDate+432e5).toLocaleDateString()}
                                     </span>
-                            </div>
+                                </div>
                                 <span className="text-white font-bold text-lg">{formatMoney(g.totalPay)}</span>
                             </div>
 
@@ -2887,22 +2871,22 @@
             
             const handleImport = () => {
                 try {
-                 if (importMode === 'timecard') {
-                    const res = parseTimecardHelper(importText);
-                    if(res.success) {
-                        setShifts(prev => { const newS = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime)); return [...prev, ...newS]; });
-                        if(res.minDate) {
-                             const minD = new Date(res.minDate + 'T12:00:00'); 
-                             const dDiff = minD.getDate() - minD.getDay(); 
-                             const anchor = new Date(minD); anchor.setDate(dDiff);
-                             setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
-                        }
+                    if (importMode === 'timecard') {
+                        const res = parseTimecardHelper(importText);
+                        if(res.success) {
+                            setShifts(prev => { const newS = res.shifts.filter(n => !prev.some(p => p.date === n.date && p.startTime === n.startTime)); return [...prev, ...newS]; });
+                            if(res.minDate) {
+                                 const minD = new Date(res.minDate + 'T12:00:00'); 
+                                 const dDiff = minD.getDate() - minD.getDay(); 
+                                 const anchor = new Date(minD); anchor.setDate(dDiff);
+                                 setSettings(p => ({...p, payPeriodAnchor: anchor.toISOString().split('T')[0]}));
+                            }
                             setImportText(''); setActiveTab('calculator'); alert(`✅ Imported ${res.shifts.length} shifts.`);
                         } else {
                             alert('❌ No dates found in the pasted text.\n\nTip: Make sure you copied from Kronos in LIST VIEW, not Grid View.');
                         }
-                 } else {
-                    const res = parsePayrollReportHelper(importText, payrollReport);
+                    } else {
+                        const res = parsePayrollReportHelper(importText, payrollReport);
                         if(res.success) { 
                             setPayrollReport(res.data); 
                             const newCodes = Object.values(res.data).flatMap(d => d.entries.map(e => e.code));
@@ -2920,7 +2904,7 @@
                 } catch (error) {
                     console.error('Import error:', error);
                     alert(`❌ Import failed: ${error.message}\n\nPlease check the browser console for details.`);
-                 }
+                }
             };
             
             const handleCopyAnonymized = () => { navigator.clipboard.writeText(JSON.stringify({shifts, codes: detectedCodes})); alert("Copied!"); };
