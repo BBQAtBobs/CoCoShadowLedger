@@ -1949,46 +1949,40 @@
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in slide-in-from-left-4">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Book className="w-5 h-5 text-teal-500" /> Release Notes</h2>
                 <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.12</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Simplified import page (removed clutter)</li>
+                            <li>Video tutorials always visible</li>
+                            <li>Faster page loading</li>
+                            <li>Cleaner design with better buttons</li>
+                       </ul>
+                   </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.11</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Added video tutorials (Kronos and ServiceNow)</li>
+                            <li>Shows correct tutorial based on what you're importing</li>
+                            <li>Opens in YouTube (works better on mobile)</li>
+                       </ul>
+                   </div>
                     <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.12</span><span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">Current</span></div>
+                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.10</span></div>
                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🧹 Import Page Cleanup:</strong> Massive UX simplification! Removed clutter now that we have video tutorials. Deleted manual entry mode, privacy toggle, bookmarklet, mobile tips, and redundant instructions. Import page is now laser-focused on its ONE job: importing data from external systems.</li>
-                             <li><strong>📹 Video-First Design:</strong> Video tutorials are now ALWAYS visible (no toggle needed). They're the hero of the page! Watch the tutorial, click the link, paste, import. That's it!</li>
-                             <li><strong>⚡ 73% Code Reduction:</strong> Reduced ImportView from 450 lines to 120 lines! Fewer elements = faster page load, cleaner UI, less cognitive load for users. Page now renders 30% faster.</li>
-                             <li><strong>✨ Polished UI:</strong> Better button styling with gradient effects, hover scale animations, improved focus states on textarea, and color-coded buttons (teal for Kronos, purple for ServiceNow).</li>
-                             <li><strong>🎯 Simplified Flow:</strong> Reduced user steps from 18 to 7! No more confusion about paste vs manual mode, no hunting for tutorials, no overwhelming walls of text. Just: rate → toggle → video → paste → import.</li>
-                             <li><strong>💡 Why This Matters:</strong> The old Import page tried to do too much. New users were overwhelmed. Now it's crystal clear: watch the video, follow along, import your data. Features like manual entry can be added elsewhere if needed (e.g., Dashboard "Quick Add" button).</li>
+                             <li>Added video tutorial for Kronos import</li>
+                             <li>Easy to find on import page</li>
+                             <li>Works on mobile</li>
                         </ul>
                     </div>
-                    <div>
-                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.11</span></div>
-                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                             <li><strong>🎬 BOTH Video Tutorials Live:</strong> Complete video walkthrough system! Kronos Timecard tutorial ([TkeC2bOEOSk](https://youtu.be/TkeC2bOEOSk)) AND ServiceNow PAR tutorial ([RfVFQo1NBqE](https://youtu.be/RfVFQo1NBqE)) now available. Click "Watch Tutorial" in Import tab for step-by-step guides. No more confusion - just follow the videos!</li>
-                             <li><strong>🎯 Context-Aware Tutorial System:</strong> App automatically shows the right tutorial based on what you're importing. Importing Timecard? See Kronos tutorial. Importing PAR? See ServiceNow tutorial. Smart and seamless!</li>
-                             <li><strong>🔗 Direct YouTube Links (Error 153 Fix):</strong> Videos open on YouTube instead of embedding to avoid playback errors. Get full YouTube features: quality settings, speed controls, comments, and mobile app support. More reliable and professional.</li>
-                             <li><strong>📱 Mobile-Optimized Buttons:</strong> Large, tappable YouTube buttons with play icons and descriptions. Works perfectly on phones - tap and watch! Opens in YouTube app on mobile for best experience.</li>
-                             <li><strong>💡 Why This Is HUGE:</strong> New users can now watch EXACTLY how to import both Kronos shifts AND ServiceNow payroll. Visual learning = 10x faster onboarding. Expect import errors to drop from 40% to &lt;5%!</li>
-                        </ul>
-                    </div>
-                     <div>
-                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.10</span></div>
-                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                              <li><strong>📹 Video Tutorial Integration:</strong> Embedded full HD video tutorial showing exactly how to import Kronos timecard data! Click "Watch Tutorial" in the Import tab to see step-by-step walkthrough. Video opens in responsive player with direct YouTube link option. No more guessing - just follow along!</li>
-                              <li><strong>🎯 Prominent Tutorial Callout:</strong> Eye-catching teal gradient box appears at the top of Kronos import instructions, making the video tutorial impossible to miss. One-click access to video reduces import confusion by 90%.</li>
-                              <li><strong>📱 Mobile-Friendly Video Player:</strong> Fully responsive 16:9 video embed works perfectly on phones and tablets. Auto-scales to screen size for comfortable viewing anywhere.</li>
-                              <li><strong>💡 Why This Matters:</strong> Visual learners rejoice! Reading instructions is hard - watching someone do it is WAY easier. This video tutorial will dramatically reduce import errors and help new users get started in minutes instead of hours.</li>
-                         </ul>
-                     </div>
-                     <div>
-                         <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.9</span></div>
-                         <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                              <li><strong>🐛 Critical Fix - PAR Parsing:</strong> Completely rewrote ServiceNow PAR import logic to recognize ALL pay codes including: Regular Unsch, NF Holdover, Overtime Unsch, NF No Break, Train Reg/OT, Imputed Income DP Medical, Meeting, and more. Now uses dual-method parsing (FLSA trigger + direct code matching) with support for colon-separated formats like "Medical.. : Regular".</li>
-                              <li><strong>📋 Import Feedback:</strong> After importing PAR, you now see exactly which pay codes were detected (e.g., "Regular, Overtime, NF No Break") so you can verify nothing was missed. Helps catch parsing issues immediately.</li>
-                              <li><strong>🔧 Expanded Code Library:</strong> Added 20+ known pay codes to recognition system including Standby, Night Differential, Bereavement, and various training codes. Parser now looks 8 lines ahead instead of 6 for better number detection.</li>
-                              <li><strong>✅ Duplicate Prevention:</strong> Smart logic now prevents the same entry from being imported twice if you accidentally paste the same data multiple times.</li>
-                              <li><strong>💡 Why This Matters:</strong> Many users were missing critical pay codes (especially "No Break" bonuses and training pay) because the old parser was too rigid. This fix ensures EVERY line from ServiceNow gets captured correctly, preventing false discrepancy alerts.</li>
-                         </ul>
-                     </div>
+                   <div>
+                       <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.9</span></div>
+                       <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Fixed payroll report parser (catches all pay codes now)</li>
+                            <li>Shows which codes were detected after import</li>
+                            <li>Added 20+ more pay codes (No Break, Training, etc.)</li>
+                            <li>Prevents duplicate imports</li>
+                       </ul>
+                   </div>
                    <div>
                        <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">v8.8</span></div>
                        <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
@@ -2158,7 +2152,7 @@
                     formData.append('email', feedbackForm.email || 'Not provided');
                     formData.append('category', feedbackForm.category);
                     formData.append('message', feedbackForm.message);
-                    formData.append('version', 'v8.8');
+                    formData.append('version', 'v8.12');
                     formData.append('detectedCodes', detectedCodes.join(', '));
                     formData.append('_subject', `CoCo SL Feedback: ${feedbackForm.category}`);
                     
@@ -2966,7 +2960,7 @@
                                      </svg>
                                      <div className="hidden sm:block">
                                          <h1 className="font-bold text-base leading-tight">CoCo ShadowLedger</h1>
-                                          <p className="text-xs text-teal-400">v8.11 (Current)</p>
+                                          <p className="text-xs text-teal-400">v8.12 (Current)</p>
                                  </div>
                                      <h1 className="sm:hidden font-bold">CoCo SL</h1>
                             </div>
